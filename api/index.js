@@ -362,24 +362,48 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Simple CORS configuration for development
+// app.use(
+//   cors({
+//     origin: [
+//       'http://localhost:3000',
+//       'http://127.0.0.1:3000',
+//       'http://0.0.0.0:3000',
+//       'http://localhost:8080',
+//       'http://127.0.0.1:8080',
+//       'https://medical-prescription-neon.vercel.app',
+//     ],
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: [
+//       'Content-Type',
+//       'Authorization',
+//       'X-Requested-With',
+//       'Accept',
+//     ],
+//   }),
+// );
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://0.0.0.0:3000',
+  'http://localhost:8080',
+  'http://127.0.0.1:8080',
+  'https://medical-prescription-neon.vercel.app',
+];
+
 app.use(
   cors({
-    origin: [
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      'http://0.0.0.0:3000',
-      'http://localhost:8080',
-      'http://127.0.0.1:8080',
-      'https://medical-prescription-neon.vercel.app',
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        // Allow requests with no origin (like Postman) or allowed origins
+        callback(null, true);
+      } else {
+        callback(new Error('CORS policy: This origin is not allowed'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'X-Requested-With',
-      'Accept',
-    ],
   }),
 );
 
