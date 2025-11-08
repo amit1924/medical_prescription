@@ -14,10 +14,10 @@
   "name": "doctor",
   "version": "1.0.0",
   "description": "",
-  "main": "api/server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node api/server.js",
-    "dev": "nodemon api/server.js"
+    "start": "node api/index.js",
+    "dev": "nodemon api/index.js"
   },
   "keywords": [],
   "author": "",
