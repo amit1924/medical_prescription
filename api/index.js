@@ -8,40 +8,13 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
+require('dotenv').config();
 
 const app = express();
 
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
-
-// Enhanced CORS configuration
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       // Allow requests with no origin (like mobile apps or curl requests)
-//       if (!origin) return callback(null, true);
-
-//       const allowedOrigins = [
-//         'http://localhost:3000',
-//         'http://127.0.0.1:3000',
-//         'http://0.0.0.0:3000',
-//         'http://localhost:8080',
-//         'http://127.0.0.1:8080',
-//         'https://medical-prescription-neon.vercel.app',
-//       ];
-
-//       if (allowedOrigins.indexOf(origin) !== -1) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error('Not allowed by CORS'));
-//       }
-//     },
-//     credentials: true,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-//   }),
-// );
 
 // Updated CORS configuration
 app.use(
@@ -78,13 +51,8 @@ app.use(
   }),
 );
 
-// Handle preflight requests
-// app.options('*', cors());
-
 // ---------- CONFIG ----------
-const MONGO_URI =
-  process.env.MONGO_URI ||
-  'mongodb+srv://chatify_user:Amit1988@cluster0.witzjfx.mongodb.net/?retryWrites=true&w=majority';
+const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT || 3000;
 // ----------------------------
 
