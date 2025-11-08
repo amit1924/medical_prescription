@@ -10,35 +10,28 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
       :root {
-        --primary: #6366f1;
-        --primary-dark: #4f46e5;
+        --primary: #3b82f6;
+        --primary-dark: #1d4ed8;
         --secondary: #10b981;
-        --accent: #f59e0b;
-        --info: #3b82f6;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
+        --accent: #8b5cf6;
         --dark: #111827;
         --darker: #0f172a;
         --light: #f8fafc;
-        --gradient-start: #8b5cf6;
-        --gradient-end: #3b82f6;
       }
 
       body {
-        font-family: 'Poppins', sans-serif;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
         min-height: 100vh;
         color: var(--light);
-        overflow-x: hidden;
       }
 
       .glass {
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(12px);
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
@@ -47,8 +40,8 @@
       }
 
       .card-hover:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
       }
 
       .fade-in {
@@ -57,10 +50,6 @@
 
       .slide-up {
         animation: slideUp 0.5s ease-out;
-      }
-
-      .pulse-glow {
-        animation: pulseGlow 2s infinite;
       }
 
       @keyframes fadeIn {
@@ -83,53 +72,33 @@
         }
       }
 
-      @keyframes pulseGlow {
-        0% {
-          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
-        }
-        70% {
-          box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
-        }
-      }
-
       .gradient-text {
         background: linear-gradient(
           135deg,
-          var(--gradient-start) 0%,
-          var(--gradient-end) 100%
+          var(--primary) 0%,
+          var(--accent) 100%
         );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
 
-      .gradient-bg {
-        background: linear-gradient(
-          135deg,
-          var(--gradient-start) 0%,
-          var(--gradient-end) 100%
-        );
-      }
-
       .file-drop-zone {
-        border: 2px dashed #64748b;
+        border: 2px dashed #4b5563;
         transition: all 0.3s ease;
       }
 
       .file-drop-zone.drag-over {
         border-color: var(--primary);
-        background-color: rgba(99, 102, 241, 0.05);
+        background-color: rgba(59, 130, 246, 0.05);
       }
 
       .modal-overlay {
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(4px);
       }
 
       .search-input:focus {
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
       }
 
       .filter-option {
@@ -137,7 +106,7 @@
       }
 
       .filter-option:hover {
-        background-color: rgba(99, 102, 241, 0.1);
+        background-color: rgba(59, 130, 246, 0.1);
       }
 
       .prescription-card {
@@ -147,62 +116,6 @@
           rgba(15, 23, 42, 0.9)
         );
         border: 1px solid rgba(255, 255, 255, 0.05);
-      }
-
-      /* Toast notifications */
-      .toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .toast {
-        padding: 16px 20px;
-        border-radius: 12px;
-        color: white;
-        font-weight: 500;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        display: flex;
-        align-items: center;
-        max-width: 350px;
-        animation: slideInRight 0.3s ease-out;
-        transition: transform 0.3s ease, opacity 0.3s ease;
-      }
-
-      .toast.success {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-      }
-
-      .toast.error {
-        background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
-      }
-
-      .toast.warning {
-        background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
-      }
-
-      .toast.info {
-        background: linear-gradient(135deg, var(--info) 0%, #1d4ed8 100%);
-      }
-
-      .toast i {
-        margin-right: 10px;
-        font-size: 1.2rem;
-      }
-
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
       }
 
       /* Mobile responsive adjustments */
@@ -223,41 +136,15 @@
         .mobile-text-center {
           text-align: center;
         }
-
-        .toast-container {
-          top: 10px;
-          right: 10px;
-          left: 10px;
-        }
-
-        .toast {
-          max-width: 100%;
-        }
-      }
-
-      /* Custom scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: rgba(30, 41, 59, 0.5);
-        border-radius: 10px;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: var(--primary);
-        border-radius: 10px;
-      }
-
-      ::-webkit-scrollbar-thumb:hover {
-        background: var(--primary-dark);
       }
     </style>
   </head>
   <body class="min-h-screen">
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- Alert Container -->
+    <div
+      id="alert"
+      class="hidden fixed top-4 right-4 px-6 py-3 rounded-xl shadow-xl z-50 transform transition-all duration-300"
+    ></div>
 
     <!-- Loading Overlay -->
     <div
@@ -300,7 +187,7 @@
           <div class="flex justify-end p-6 border-t border-gray-700">
             <button
               id="downloadPreviewBtn"
-              class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 mr-2"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 mr-2"
             >
               <i class="fas fa-download mr-2"></i> Download
             </button>
@@ -367,7 +254,7 @@
             </button>
             <button
               id="saveEditBtn"
-              class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
             >
               <i class="fas fa-save mr-2"></i> Save Changes
             </button>
@@ -433,7 +320,7 @@
       >
         <div class="flex items-center">
           <div
-            class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center mr-3 pulse-glow"
+            class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center mr-3"
           >
             <i class="fas fa-pills text-white"></i>
           </div>
@@ -444,7 +331,7 @@
         <div id="userInfo" class="hidden slide-up">
           <div class="flex items-center">
             <div
-              class="w-8 h-8 rounded-full gradient-bg flex items-center justify-center text-white mr-3"
+              class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white mr-3"
             >
               <i class="fas fa-user text-sm"></i>
             </div>
@@ -469,7 +356,7 @@
       <div class="max-w-6xl mx-auto">
         <div class="text-center mb-12 slide-up">
           <div
-            class="w-24 h-24 rounded-full gradient-bg flex items-center justify-center mx-auto mb-6 shadow-xl pulse-glow"
+            class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-6 shadow-xl"
           >
             <i class="fas fa-file-medical text-white text-4xl"></i>
           </div>
@@ -678,7 +565,7 @@
             <div class="mt-4 md:mt-0 flex flex-wrap gap-3">
               <button
                 onclick="showUploadModal()"
-                class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
               >
                 <i class="fas fa-plus mr-2"></i> New Prescription
               </button>
@@ -754,7 +641,7 @@
         <div
           class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8"
         >
-          <div class="glass rounded-2xl p-6 flex items-center card-hover">
+          <div class="glass rounded-2xl p-6 flex items-center">
             <div
               class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center mr-4"
             >
@@ -767,7 +654,7 @@
               </p>
             </div>
           </div>
-          <div class="glass rounded-2xl p-6 flex items-center card-hover">
+          <div class="glass rounded-2xl p-6 flex items-center">
             <div
               class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mr-4"
             >
@@ -778,7 +665,7 @@
               <p id="totalDoctors" class="text-2xl font-bold text-white">0</p>
             </div>
           </div>
-          <div class="glass rounded-2xl p-6 flex items-center card-hover">
+          <div class="glass rounded-2xl p-6 flex items-center">
             <div
               class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center mr-4"
             >
@@ -794,104 +681,48 @@
         </div>
 
         <!-- Prescriptions Grid -->
-        <div class="glass rounded-2xl shadow-xl p-4 sm:p-6 slide-up">
-          <!-- Header Section with improved mobile layout -->
-          <div
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
-          >
-            <div class="flex items-center">
-              <i
-                class="fas fa-file-medical text-blue-400 text-xl sm:text-2xl mr-2"
-              ></i>
-              <h3 class="text-lg sm:text-xl font-semibold text-white">
-                Your Prescriptions
-              </h3>
-            </div>
-
-            <!-- Action Buttons - Stack on mobile, row on larger screens -->
-            <div
-              class="flex flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end"
-            >
+        <div class="glass rounded-2xl shadow-xl p-6 slide-up">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold text-white flex items-center">
+              <i class="fas fa-file-medical mr-2 text-blue-400"></i> Your
+              Prescriptions
+            </h3>
+            <div class="flex space-x-2">
               <button
                 onclick="toggleViewMode()"
                 id="viewToggle"
-                class="bg-gray-700 hover:bg-gray-600 text-white p-2 sm:p-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex-shrink-0"
+                class="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-lg transition-all duration-300 transform hover:scale-105"
                 title="Toggle View"
               >
-                <i class="fas fa-th text-sm sm:text-base"></i>
+                <i class="fas fa-th"></i>
               </button>
               <button
                 onclick="listFiles()"
-                class="bg-gray-700 hover:bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 flex-1 sm:flex-none justify-center"
+                class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
               >
-                <i class="fas fa-sync-alt mr-2 text-sm sm:text-base"></i>
-                <span class="text-sm sm:text-base">Refresh</span>
-              </button>
-              <button
-                onclick="showUploadModal()"
-                class="gradient-bg hover:opacity-90 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 flex-1 sm:flex-none justify-center"
-              >
-                <i class="fas fa-plus mr-2 text-sm sm:text-base"></i>
-                <span class="text-sm sm:text-base">New</span>
+                <i class="fas fa-sync-alt mr-2"></i> Refresh
               </button>
             </div>
           </div>
 
-          <!-- Prescriptions Grid -->
           <div
             id="list"
-            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[200px]"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           ></div>
 
-          <!-- Empty State -->
-          <div id="emptyState" class="hidden text-center py-8 sm:py-16">
-            <div class="max-w-md mx-auto">
-              <i
-                class="fas fa-file-medical text-4xl sm:text-6xl text-gray-500 mb-4"
-              ></i>
-              <h3 class="text-lg sm:text-xl font-semibold text-gray-300 mb-3">
-                No Prescriptions Found
-              </h3>
-              <p class="text-gray-400 text-sm sm:text-base mb-6">
-                Start by uploading your first prescription or adjust your search
-                filters
-              </p>
-              <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onclick="showUploadModal()"
-                  class="gradient-bg hover:opacity-90 text-white px-4 py-3 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105"
-                >
-                  <i class="fas fa-plus mr-2"></i>
-                  Upload Prescription
-                </button>
-                <button
-                  onclick="clearFilters()"
-                  class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105"
-                >
-                  <i class="fas fa-times mr-2"></i>
-                  Clear Filters
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Loading State -->
-          <div id="loadingState" class="hidden text-center py-12">
-            <div
-              class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"
-            ></div>
-            <p class="text-gray-400">Loading your prescriptions...</p>
-          </div>
-
-          <!-- Error State -->
-          <div id="errorState" class="hidden text-center py-8 text-red-400">
-            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
-            <p class="mb-4">Error loading prescriptions</p>
+          <div id="emptyState" class="hidden text-center py-16">
+            <i class="fas fa-file-medical text-6xl text-gray-600 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-400 mb-2">
+              No Prescriptions Found
+            </h3>
+            <p class="text-gray-500 mb-6">
+              Try adjusting your search or upload your first prescription
+            </p>
             <button
-              onclick="listFiles()"
-              class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
+              onclick="showUploadModal()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 mx-auto"
             >
-              Try Again
+              <i class="fas fa-plus mr-2"></i> Upload Prescription
             </button>
           </div>
         </div>
@@ -903,17 +734,14 @@
       <div class="modal-overlay absolute inset-0"></div>
       <div class="flex items-center justify-center min-h-screen p-4">
         <div
-          class="glass rounded-2xl shadow-2xl w-full max-w-2xl relative slide-up flex flex-col max-h-[90vh]"
+          class="glass rounded-2xl shadow-2xl w-full max-w-2xl relative slide-up"
         >
           <div
-            class="flex flex-wrap justify-between items-center p-6 border-b border-gray-700"
+            class="flex justify-between items-center p-6 border-b border-gray-700 h-6"
           >
-            <h3
-              class="text-xl font-bold text-white w-full sm:w-auto mb-3 sm:mb-0"
-            >
+            <h3 class="text-xl font-bold text-white">
               Upload New Prescription
             </h3>
-
             <button
               onclick="closeUploadModal()"
               class="text-gray-400 hover:text-white transition-colors duration-300"
@@ -921,8 +749,7 @@
               <i class="fas fa-times text-2xl"></i>
             </button>
           </div>
-
-          <div class="p-6 overflow-y-auto flex-1 max-h-[calc(90vh-140px)]">
+          <div class="p-6">
             <!-- File Drop Zone -->
             <div
               id="fileDropZone"
@@ -976,7 +803,7 @@
               <div class="w-full bg-gray-700 rounded-full h-2">
                 <div
                   id="progressBar"
-                  class="gradient-bg h-2 rounded-full transition-all duration-300"
+                  class="bg-blue-600 h-2 rounded-full transition-all duration-300"
                   style="width: 0%"
                 ></div>
               </div>
@@ -1021,11 +848,7 @@
               </div>
             </form>
           </div>
-
-          <!-- Sticky button container on mobile -->
-          <div
-            class="flex justify-end p-6 border-t border-gray-700 bg-gray-900/80 backdrop-blur-sm sticky bottom-0 rounded-b-2xl"
-          >
+          <div class="flex justify-end p-6 border-t border-gray-700">
             <button
               onclick="closeUploadModal()"
               class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 mr-2"
@@ -1036,7 +859,7 @@
               id="uploadBtn"
               type="button"
               onclick="uploadFile()"
-              class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               disabled
             >
               <i class="fas fa-upload mr-2"></i> Upload Prescription
@@ -1045,6 +868,7 @@
         </div>
       </div>
     </div>
+
     <script>
       const API_BASE =
         window.location.hostname === 'localhost'
@@ -1061,36 +885,6 @@
         USER: 'prescriptionVault_user',
         VIEW: 'prescriptionVault_currentView',
       };
-
-      // Toast notification function
-      function showToast(message, type = 'info') {
-        const toastContainer = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-
-        let icon = 'fa-info-circle';
-        if (type === 'success') icon = 'fa-check-circle';
-        if (type === 'error') icon = 'fa-exclamation-circle';
-        if (type === 'warning') icon = 'fa-exclamation-triangle';
-
-        toast.innerHTML = `
-          <i class="fas ${icon}"></i>
-          <span>${message}</span>
-        `;
-
-        toastContainer.appendChild(toast);
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-          toast.style.transform = 'translateX(100%)';
-          toast.style.opacity = '0';
-          setTimeout(() => {
-            if (toastContainer.contains(toast)) {
-              toastContainer.removeChild(toast);
-            }
-          }, 300);
-        }, 5000);
-      }
 
       // Navigation functions
       function showWelcome() {
@@ -1181,6 +975,18 @@
         }
       }
 
+      function showAlert(message, type) {
+        const alertDiv = document.getElementById('alert');
+        alertDiv.textContent = message;
+        alertDiv.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
+          type === 'success' ? 'bg-green-600' : 'bg-red-600'
+        } text-white slide-up`;
+        alertDiv.classList.remove('hidden');
+        setTimeout(() => {
+          alertDiv.classList.add('hidden');
+        }, 4000);
+      }
+
       function showLoading(show) {
         const loadingOverlay = document.getElementById('loadingOverlay');
         if (show) {
@@ -1216,18 +1022,18 @@
           document.getElementById('confirmPassword').value;
 
         if (!email || !password || !confirmPassword) {
-          showToast('Please fill in all fields', 'error');
+          showAlert('Please fill in all fields', 'error');
           return;
         }
 
         if (password !== confirmPassword) {
-          showToast('Passwords do not match', 'error');
+          showAlert('Passwords do not match', 'error');
           return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-          showToast('Please enter a valid email address', 'error');
+          showAlert('Please enter a valid email address', 'error');
           return;
         }
 
@@ -1239,12 +1045,12 @@
             body: JSON.stringify({ email, password }),
           });
 
-          showToast('Account created successfully! Please login.', 'success');
+          showAlert('Account created successfully! Please login.', 'success');
           showLogin();
           // Pre-fill the login form
           document.getElementById('loginEmail').value = email;
         } catch (error) {
-          showToast(error.message, 'error');
+          showAlert(error.message, 'error');
         } finally {
           showLoading(false);
         }
@@ -1256,7 +1062,7 @@
         const password = document.getElementById('loginPassword').value;
 
         if (!email || !password) {
-          showToast('Please enter both email and password', 'error');
+          showAlert('Please enter both email and password', 'error');
           return;
         }
 
@@ -1274,14 +1080,14 @@
           // Save user data to localStorage
           saveUserData(currentUser);
 
-          showToast('Welcome back!', 'success');
+          showAlert('Welcome back!', 'success');
           document.getElementById('userEmail').textContent = currentUser.email;
           document.getElementById('appUserEmail').textContent =
             currentUser.email;
           showApp();
           listFiles();
         } catch (error) {
-          showToast(error.message, 'error');
+          showAlert(error.message, 'error');
         } finally {
           showLoading(false);
         }
@@ -1290,7 +1096,7 @@
       function logout() {
         currentUser = null;
         clearUserData();
-        showToast('Logged out successfully', 'success');
+        showAlert('Logged out successfully', 'success');
         showWelcome();
       }
 
@@ -1337,7 +1143,7 @@
 
           // Check file size (10MB limit)
           if (file.size > 10 * 1024 * 1024) {
-            showToast('File size must be less than 10MB', 'error');
+            showAlert('File size must be less than 10MB', 'error');
             clearFileSelection();
             return;
           }
@@ -1350,7 +1156,7 @@
             'application/pdf',
           ];
           if (!allowedTypes.includes(file.type)) {
-            showToast('Please upload only JPEG, PNG, or PDF files', 'error');
+            showAlert('Please upload only JPEG, PNG, or PDF files', 'error');
             clearFileSelection();
             return;
           }
@@ -1399,11 +1205,11 @@
         const date = document.getElementById('date').value;
 
         if (!file) {
-          showToast('Please select a file', 'error');
+          showAlert('Please select a file', 'error');
           return;
         }
         if (!docName || !date) {
-          showToast('Please enter doctor name and date', 'error');
+          showAlert('Please enter doctor name and date', 'error');
           return;
         }
 
@@ -1448,12 +1254,12 @@
           if (!response.ok) throw new Error(result.error);
 
           setTimeout(() => {
-            showToast('File uploaded successfully!', 'success');
+            showAlert('File uploaded successfully!', 'success');
             closeUploadModal();
             listFiles();
           }, 500);
         } catch (error) {
-          showToast('Upload failed: ' + error.message, 'error');
+          showAlert('Upload failed: ' + error.message, 'error');
           document.getElementById('uploadProgress').classList.add('hidden');
         } finally {
           const uploadBtn = document.getElementById('uploadBtn');
@@ -1497,7 +1303,7 @@
             <div class="col-span-full text-center py-8 text-red-400">
               <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
               <p>Error loading prescriptions: ${error.message}</p>
-              <button onclick="listFiles()" class="mt-4 gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg">
+              <button onclick="listFiles()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                 Try Again
               </button>
             </div>
@@ -1593,7 +1399,7 @@
                     onclick="previewFile('${file.id}', '${file.filename}', '${
               file.contentType
             }')" 
-                    class="flex-1 gradient-bg hover:opacity-90 text-white text-center py-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
                   >
                     <i class="fas fa-eye mr-2"></i> Preview
                   </button>
@@ -1712,7 +1518,7 @@
 
       function toggleViewMode() {
         // This would toggle between grid and list view
-        showToast('View toggle functionality would go here', 'info');
+        showAlert('View toggle functionality would go here', 'success');
       }
 
       // Preview file function
@@ -1785,7 +1591,7 @@
         const date = document.getElementById('editDate').value;
 
         if (!docname || !date) {
-          showToast('Please enter both doctor name and date', 'error');
+          showAlert('Please enter both doctor name and date', 'error');
           return;
         }
 
@@ -1797,11 +1603,11 @@
             body: JSON.stringify({ doctor: docname, date }),
           });
 
-          showToast('Prescription updated successfully!', 'success');
+          showAlert('Prescription updated successfully!', 'success');
           closeEditModal();
           listFiles();
         } catch (error) {
-          showToast('Failed to update prescription: ' + error.message, 'error');
+          showAlert('Failed to update prescription: ' + error.message, 'error');
         } finally {
           showLoading(false);
         }
@@ -1839,11 +1645,11 @@
             method: 'DELETE',
           });
 
-          showToast('Prescription deleted successfully!', 'success');
+          showAlert('Prescription deleted successfully!', 'success');
           closeDeleteModal();
           listFiles();
         } catch (error) {
-          showToast('Failed to delete prescription: ' + error.message, 'error');
+          showAlert('Failed to delete prescription: ' + error.message, 'error');
         } finally {
           showLoading(false);
         }
