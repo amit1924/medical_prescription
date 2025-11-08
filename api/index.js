@@ -351,23 +351,15 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // CORS configuration
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://medical-prescription-neon.vercel.app',
-];
-
+// CORS configuration
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        // Allow requests with no origin (like Postman) or allowed origins
-        callback(null, true);
-      } else {
-        callback(new Error('CORS policy: This origin is not allowed'));
-      }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: [
+      'http://localhost:3000',
+      'https://medical-prescription-neon.vercel.app',
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
   }),
 );
 
