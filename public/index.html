@@ -870,10 +870,14 @@
     </div>
 
     <script>
+      // Dynamically select the correct backend
       const API_BASE =
-        window.location.hostname === 'localhost'
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'
           ? 'http://localhost:3000'
           : 'https://medical-prescription-neon.vercel.app';
+
+      console.log('Using API:', API_BASE);
 
       let currentUser = null;
       let currentFileForEdit = null;
