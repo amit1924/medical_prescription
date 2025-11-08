@@ -17,29 +17,43 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Updated CORS configuration
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       // Allow all origins in development, restrict in production
+//       if (process.env.NODE_ENV === 'development' || !origin) {
+//         return callback(null, true);
+//       }
+
+//       const allowedOrigins = [
+//         'http://localhost:3000',
+//         'http://127.0.0.1:3000',
+//         'http://0.0.0.0:3000',
+//         'http://localhost:8080',
+//         'http://127.0.0.1:8080',
+//         'https://medical-prescription-neon.vercel.app',
+//       ];
+
+//       if (allowedOrigins.indexOf(origin) !== -1) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error('Not allowed by CORS'));
+//       }
+//     },
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: [
+//       'Content-Type',
+//       'Authorization',
+//       'X-Requested-With',
+//       'Accept',
+//     ],
+//   }),
+// );
+
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow all origins in development, restrict in production
-      if (process.env.NODE_ENV === 'development' || !origin) {
-        return callback(null, true);
-      }
-
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://0.0.0.0:3000',
-        'http://localhost:8080',
-        'http://127.0.0.1:8080',
-        'https://medical-prescription-neon.vercel.app',
-      ];
-
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: true, // Allow all origins in development
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
