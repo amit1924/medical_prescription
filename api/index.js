@@ -350,8 +350,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// CORS configuration
-// CORS configuration
+// Improved CORS configuration
 app.use(
   cors({
     origin: [
@@ -359,10 +358,19 @@ app.use(
       'https://medical-prescription-frontend.vercel.app',
     ],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+    ],
   }),
 );
 
+// Explicitly handle preflight requests
+// app.options('*', cors());
 // ---------- CONFIG ----------
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT || 3000;
