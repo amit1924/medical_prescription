@@ -356,7 +356,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:3000',
-      'https://medical-prescription-neon.vercel.app',
+      'https://medical-prescription-frontend.vercel.app',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
