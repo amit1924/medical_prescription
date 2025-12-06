@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>NeonRx - Prescription Manager</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -48,10 +51,18 @@
         background-color: #080c16;
         color: #e2e8f0;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      * {
+        box-sizing: border-box;
+        max-width: 100%;
       }
 
       ::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
       }
       ::-webkit-scrollbar-track {
         background: #111827;
@@ -70,6 +81,8 @@
         border: 1px solid #374151;
         color: white;
         transition: all 0.3s ease;
+        font-size: 16px; /* Prevents zoom on iOS */
+        min-height: 44px; /* Better touch target */
       }
       .neon-input:focus {
         outline: none;
@@ -80,6 +93,8 @@
       #mobile-sidebar {
         transition: transform 0.3s ease-in-out;
         transform: translateX(-100%);
+        width: 280px;
+        max-width: 85vw;
       }
       #mobile-sidebar.open {
         transform: translateX(0);
@@ -147,6 +162,141 @@
         z-index: 100;
         border: 1px solid #374151;
       }
+
+      /* Mobile-specific fixes */
+      @media screen and (max-width: 767px) {
+        body {
+          overflow-x: hidden;
+        }
+
+        /* Fix overflowing elements */
+        .grid {
+          display: block !important;
+        }
+
+        .grid > * {
+          width: 100% !important;
+          margin-bottom: 16px;
+        }
+
+        /* Improve touch targets */
+        button,
+        .btn,
+        a.nav-link,
+        input[type='button'],
+        input[type='submit'] {
+          min-height: 44px;
+          min-width: 44px;
+        }
+
+        /* Adjust font sizes for mobile */
+        h1 {
+          font-size: 1.8rem !important;
+        }
+        h2 {
+          font-size: 1.5rem !important;
+        }
+        h3 {
+          font-size: 1.3rem !important;
+        }
+        .text-2xl {
+          font-size: 1.4rem !important;
+        }
+        .text-3xl {
+          font-size: 1.8rem !important;
+        }
+        .text-5xl {
+          font-size: 2.5rem !important;
+        }
+
+        /* Fix overflowing text */
+        .truncate {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* Adjust padding for mobile */
+        .p-6 {
+          padding: 1rem !important;
+        }
+        .p-8 {
+          padding: 1.5rem !important;
+        }
+        .px-6 {
+          padding-left: 1rem !important;
+          padding-right: 1rem !important;
+        }
+        .py-3 {
+          padding-top: 0.75rem !important;
+          padding-bottom: 0.75rem !important;
+        }
+
+        /* Stack elements vertically */
+        .flex-row {
+          flex-direction: column !important;
+        }
+
+        /* Fix modal overflow */
+        .modal-overlay > div {
+          margin: 1rem !important;
+          max-height: 85vh !important;
+          overflow-y: auto !important;
+        }
+
+        /* Hide tooltips on mobile */
+        .tooltip:hover::after {
+          display: none;
+        }
+      }
+
+      /* Very small devices */
+      @media screen and (max-width: 360px) {
+        .text-sm {
+          font-size: 0.75rem !important;
+        }
+        .text-xs {
+          font-size: 0.65rem !important;
+        }
+        .p-4 {
+          padding: 0.75rem !important;
+        }
+        .p-5 {
+          padding: 1rem !important;
+        }
+      }
+
+      /* Landscape mode fixes */
+      @media screen and (max-height: 500px) and (orientation: landscape) {
+        .preview-container {
+          max-height: 50vh;
+        }
+
+        #auth-view {
+          padding-top: 1rem !important;
+          padding-bottom: 1rem !important;
+        }
+      }
+
+      /* Prevent content from being cut off */
+      .overflow-hidden-mobile {
+        overflow: visible !important;
+      }
+
+      /* Better responsive grid */
+      .responsive-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+
+      /* Safe area for notched phones */
+      .safe-area-top {
+        padding-top: env(safe-area-inset-top);
+      }
+      .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+      }
     </style>
   </head>
   <body class="h-screen overflow-hidden flex flex-col">
@@ -154,77 +304,84 @@
     <div
       id="toast"
       class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300"
+      style="max-width: calc(100vw - 2rem)"
     >
       <div
         id="toast-content"
-        class="bg-gray-800 border-l-4 border-neon-blue text-white px-6 py-4 rounded shadow-neon-blue flex items-center gap-3"
+        class="bg-gray-800 border-l-4 border-neon-blue text-white px-4 py-3 rounded shadow-neon-blue flex items-center gap-3 text-sm"
       >
         <i class="fas fa-info-circle"></i>
-        <span id="toast-message">Notification</span>
+        <span id="toast-message" class="truncate">Notification</span>
       </div>
     </div>
 
     <!-- Auth View -->
     <div
       id="auth-view"
-      class="flex-1 flex items-center justify-center p-4 relative"
+      class="flex-1 flex items-center justify-center p-4 relative overflow-auto"
     >
       <div
-        class="absolute top-20 left-20 w-32 h-32 bg-neon-blue rounded-full filter blur-[120px] opacity-20"
+        class="absolute top-20 left-4 sm:left-20 w-32 h-32 bg-neon-blue rounded-full filter blur-[120px] opacity-20"
       ></div>
       <div
-        class="absolute bottom-20 right-20 w-32 h-32 bg-neon-purple rounded-full filter blur-[120px] opacity-20"
+        class="absolute bottom-20 right-4 sm:right-20 w-32 h-32 bg-neon-purple rounded-full filter blur-[120px] opacity-20"
       ></div>
 
       <div
-        class="w-full max-w-md bg-gray-900/80 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-neon-blue p-8 relative z-10"
+        class="w-full max-w-md bg-gray-900/80 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-neon-blue p-4 sm:p-6 md:p-8 relative z-10 mx-2"
       >
-        <div class="text-center mb-8">
+        <div class="text-center mb-6">
           <i
-            class="fas fa-prescription-bottle-alt text-5xl text-neon-blue mb-4 drop-shadow-[0_0_15px_rgba(6,182,212,0.9)]"
+            class="fas fa-prescription-bottle-alt text-4xl sm:text-5xl text-neon-blue mb-3 drop-shadow-[0_0_15px_rgba(6,182,212,0.9)]"
           ></i>
           <h1
-            class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple"
+            class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple"
           >
             NeonRx
           </h1>
-          <p class="text-gray-400 text-sm mt-2">Medical Document Management</p>
+          <p class="text-gray-400 text-xs sm:text-sm mt-1">
+            Medical Document Management
+          </p>
         </div>
 
-        <form id="login-form" class="space-y-5">
+        <form id="login-form" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Email</label
             >
             <div class="relative">
               <i
-                class="fas fa-envelope absolute left-3 top-3.5 text-gray-500"
+                class="fas fa-envelope absolute left-3 top-3 text-gray-500 text-sm"
               ></i>
               <input
                 type="email"
                 id="login-email"
-                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                class="neon-input w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base"
                 placeholder="doctor@example.com"
                 required
               />
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Password</label
             >
             <div class="relative">
-              <i class="fas fa-lock absolute left-3 top-3.5 text-gray-500"></i>
+              <i
+                class="fas fa-lock absolute left-3 top-3 text-gray-500 text-sm"
+              ></i>
               <input
                 type="password"
                 id="login-password"
-                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                class="neon-input w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base"
                 placeholder="••••••••"
                 required
               />
             </div>
           </div>
-          <div class="flex justify-between text-sm">
+          <div class="flex justify-between text-xs sm:text-sm">
             <a
               href="#"
               onclick="showSection('forgot-password-form')"
@@ -234,11 +391,11 @@
           </div>
           <button
             type="submit"
-            class="w-full bg-gradient-to-r from-neon-blue to-cyan-500 hover:from-neon-blue hover:to-neon-blue text-black font-bold py-3 rounded-lg shadow-neon-blue transition-all transform hover:scale-[1.01]"
+            class="w-full bg-gradient-to-r from-neon-blue to-cyan-500 hover:from-neon-blue hover:to-neon-blue text-black font-bold py-2.5 sm:py-3 rounded-lg shadow-neon-blue transition-all transform hover:scale-[1.01] text-sm sm:text-base"
           >
             LOGIN
           </button>
-          <p class="text-center text-gray-400 text-sm">
+          <p class="text-center text-gray-400 text-xs sm:text-sm">
             Don't have an account?
             <a
               href="#"
@@ -249,34 +406,38 @@
           </p>
         </form>
 
-        <form id="signup-form" class="space-y-5 hidden-section">
+        <form id="signup-form" class="space-y-4 hidden-section">
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Email</label
             >
             <div class="relative">
               <i
-                class="fas fa-envelope absolute left-3 top-3.5 text-gray-500"
+                class="fas fa-envelope absolute left-3 top-3 text-gray-500 text-sm"
               ></i>
               <input
                 type="email"
                 id="signup-email"
-                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                class="neon-input w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base"
                 placeholder="newuser@example.com"
                 required
               />
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Password</label
             >
             <div class="relative">
-              <i class="fas fa-lock absolute left-3 top-3.5 text-gray-500"></i>
+              <i
+                class="fas fa-lock absolute left-3 top-3 text-gray-500 text-sm"
+              ></i>
               <input
                 type="password"
                 id="signup-password"
-                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                class="neon-input w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base"
                 placeholder="••••••••"
                 required
               />
@@ -284,11 +445,11 @@
           </div>
           <button
             type="submit"
-            class="w-full bg-gradient-to-r from-neon-purple to-pink-600 hover:from-neon-purple hover:to-neon-purple text-white font-bold py-3 rounded-lg shadow-neon-purple transition-all transform hover:scale-[1.01]"
+            class="w-full bg-gradient-to-r from-neon-purple to-pink-600 hover:from-neon-purple hover:to-neon-purple text-white font-bold py-2.5 sm:py-3 rounded-lg shadow-neon-purple transition-all transform hover:scale-[1.01] text-sm sm:text-base"
           >
             CREATE ACCOUNT
           </button>
-          <p class="text-center text-gray-400 text-sm">
+          <p class="text-center text-gray-400 text-xs sm:text-sm">
             Already have an account?
             <a
               href="#"
@@ -299,25 +460,28 @@
           </p>
         </form>
 
-        <form id="forgot-password-form" class="space-y-5 hidden-section">
-          <div class="text-center mb-4">
-            <h3 class="text-lg font-bold text-white">Reset Password</h3>
+        <form id="forgot-password-form" class="space-y-4 hidden-section">
+          <div class="text-center mb-3">
+            <h3 class="text-lg sm:text-lg font-bold text-white">
+              Reset Password
+            </h3>
             <p class="text-xs text-gray-400">
               Enter your email to receive a reset link.
             </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Email</label
             >
             <div class="relative">
               <i
-                class="fas fa-envelope absolute left-3 top-3.5 text-gray-500"
+                class="fas fa-envelope absolute left-3 top-3 text-gray-500 text-sm"
               ></i>
               <input
                 type="email"
                 id="forgot-email"
-                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                class="neon-input w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base"
                 required
               />
             </div>
@@ -325,14 +489,14 @@
           <button
             type="submit"
             id="send-reset-link-btn"
-            class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition-all border border-gray-600 hover:border-white"
+            class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 sm:py-3 rounded-lg transition-all border border-gray-600 hover:border-white text-sm sm:text-base"
           >
             SEND LINK
           </button>
           <!-- New element to display reset link for dev purposes -->
           <div
             id="reset-link-display"
-            class="hidden text-center text-sm bg-gray-800 p-3 rounded-lg border border-gray-700 break-words"
+            class="hidden text-center text-xs bg-gray-800 p-3 rounded-lg border border-gray-700 break-words"
           >
             <p class="text-neon-blue font-semibold mb-2">
               Development Reset Link (Copy/Paste):
@@ -340,13 +504,13 @@
             <textarea
               id="reset-link-textarea"
               readonly
-              class="neon-input w-full p-2 text-xs h-20 resize-none"
+              class="neon-input w-full p-2 text-xs h-16 sm:h-20 resize-none"
             ></textarea>
-            <p class="text-gray-500 mt-2">
+            <p class="text-gray-500 mt-2 text-xs">
               In a real app, this link would be sent to your email.
             </p>
           </div>
-          <p class="text-center text-gray-400 text-sm">
+          <p class="text-center text-gray-400 text-xs sm:text-sm">
             <a
               href="#"
               onclick="showSection('login-form')"
@@ -359,71 +523,80 @@
     </div>
 
     <!-- Dashboard View -->
-    <div id="dashboard-view" class="hidden-section flex-1 flex h-screen">
+    <div
+      id="dashboard-view"
+      class="hidden-section flex-1 flex h-screen overflow-hidden-mobile"
+    >
       <aside
-        class="w-64 bg-gray-900 border-r border-gray-800 flex-col hidden md:flex relative z-20"
+        class="w-64 bg-gray-900 border-r border-gray-800 flex-col hidden lg:flex relative z-20"
       >
-        <div class="p-6 flex items-center gap-3 border-b border-gray-800">
+        <div
+          class="p-4 sm:p-6 flex items-center gap-3 border-b border-gray-800"
+        >
           <i
-            class="fas fa-prescription-bottle-alt text-2xl text-neon-blue drop-shadow-[0_0_5px_#06b6d4]"
+            class="fas fa-prescription-bottle-alt text-xl sm:text-2xl text-neon-blue drop-shadow-[0_0_5px_#06b6d4]"
           ></i>
-          <span class="font-bold text-xl tracking-wider">NeonRx</span>
+          <span class="font-bold text-lg sm:text-xl tracking-wider"
+            >NeonRx</span
+          >
         </div>
 
-        <nav class="flex-1 p-4 space-y-2">
+        <nav class="flex-1 p-3 sm:p-4 space-y-2">
           <a
             href="#"
             onclick="switchDashboardSection('overview')"
             id="nav-overview"
-            class="nav-link flex items-center gap-3 p-3 bg-gray-800/50 text-neon-blue border-r-2 border-neon-blue rounded-l-md transition-all"
+            class="nav-link flex items-center gap-3 p-3 bg-gray-800/50 text-neon-blue border-r-2 border-neon-blue rounded-l-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-chart-line w-6 text-center"></i>
+            <i class="fas fa-chart-line w-5 sm:w-6 text-center"></i>
             <span>Overview</span>
           </a>
           <a
             href="#"
             onclick="switchDashboardSection('files')"
             id="nav-files"
-            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-blue rounded-md transition-all"
+            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-blue rounded-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-folder-open w-6 text-center"></i>
+            <i class="fas fa-folder-open w-5 sm:w-6 text-center"></i>
             <span>All Files</span>
           </a>
           <a
             href="#"
             onclick="switchDashboardSection('doctors')"
             id="nav-doctors"
-            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-green rounded-md transition-all"
+            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-green rounded-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-user-md w-6 text-center"></i>
+            <i class="fas fa-user-md w-5 sm:w-6 text-center"></i>
             <span>Doctors</span>
           </a>
           <a
             href="#"
             onclick="switchDashboardSection('analytics')"
             id="nav-analytics"
-            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-pink rounded-md transition-all"
+            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-pink rounded-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-chart-bar w-6 text-center"></i>
+            <i class="fas fa-chart-bar w-5 sm:w-6 text-center"></i>
             <span>Analytics</span>
           </a>
           <a
             href="#"
             onclick="switchDashboardSection('settings')"
             id="nav-settings"
-            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-purple rounded-md transition-all"
+            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-purple rounded-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-cog w-6 text-center"></i>
+            <i class="fas fa-cog w-5 sm:w-6 text-center"></i>
             <span>Settings</span>
           </a>
         </nav>
 
         <!-- Storage Info in Sidebar -->
-        <div class="p-4 border-t border-gray-800">
-          <div class="mb-4">
+        <div class="p-3 sm:p-4 border-t border-gray-800">
+          <div class="mb-3 sm:mb-4">
             <div class="flex justify-between text-xs text-gray-400 mb-1">
               <span>Storage</span>
-              <span id="sidebar-storage-used">0 MB / 100 MB</span>
+              <span id="sidebar-storage-used" class="text-xs"
+                >0 MB / 100 MB</span
+              >
             </div>
             <div class="storage-bar mb-2">
               <div
@@ -433,11 +606,12 @@
               ></div>
             </div>
             <p class="text-xs text-gray-500">
-              Free: <span id="sidebar-storage-free">100 MB</span>
+              Free:
+              <span id="sidebar-storage-free" class="text-xs">100 MB</span>
             </p>
           </div>
 
-          <div class="bg-gray-800 rounded-lg p-3 mb-4">
+          <div class="bg-gray-800 rounded-lg p-3 mb-3 sm:mb-4">
             <p class="text-xs text-gray-400">Logged in as</p>
             <p
               id="user-email-display"
@@ -448,7 +622,7 @@
           </div>
           <button
             onclick="logout()"
-            class="w-full flex items-center justify-center gap-2 p-2 text-gray-400 hover:text-red-400 transition-colors bg-gray-800/50 rounded-lg hover:bg-gray-800"
+            class="w-full flex items-center justify-center gap-2 p-2 text-gray-400 hover:text-red-400 transition-colors bg-gray-800/50 rounded-lg hover:bg-gray-800 text-sm"
           >
             <i class="fas fa-sign-out-alt"></i> Logout
           </button>
@@ -458,67 +632,86 @@
       <!-- Mobile Sidebar -->
       <aside
         id="mobile-sidebar"
-        class="fixed top-0 left-0 h-full w-64 bg-gray-900 border-r border-gray-800 flex flex-col z-40 md:hidden"
+        class="fixed top-0 left-0 h-full w-64 bg-gray-900 border-r border-gray-800 flex flex-col z-40 lg:hidden"
       >
-        <div class="p-6 flex items-center gap-3 border-b border-gray-800">
+        <div
+          class="p-4 sm:p-6 flex items-center gap-3 border-b border-gray-800"
+        >
           <i
-            class="fas fa-prescription-bottle-alt text-2xl text-neon-blue drop-shadow-[0_0_5px_#06b6d4]"
+            class="fas fa-prescription-bottle-alt text-xl sm:text-2xl text-neon-blue drop-shadow-[0_0_5px_#06b6d4]"
           ></i>
-          <span class="font-bold text-xl tracking-wider">NeonRx</span>
+          <span class="font-bold text-lg sm:text-xl tracking-wider"
+            >NeonRx</span
+          >
         </div>
 
-        <nav class="flex-1 p-4 space-y-2">
+        <nav class="flex-1 p-3 sm:p-4 space-y-2 overflow-y-auto">
           <a
             href="#"
             onclick="switchDashboardSection('overview', true)"
             id="mobile-nav-overview"
-            class="nav-link-mobile flex items-center gap-3 p-3 bg-gray-800/50 text-neon-blue border-r-2 border-neon-blue rounded-l-md transition-all"
+            class="nav-link-mobile flex items-center gap-3 p-3 bg-gray-800/50 text-neon-blue border-r-2 border-neon-blue rounded-l-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-chart-line w-6 text-center"></i>
+            <i class="fas fa-chart-line w-5 sm:w-6 text-center"></i>
             <span>Overview</span>
           </a>
           <a
             href="#"
             onclick="switchDashboardSection('files', true)"
             id="mobile-nav-files"
-            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-blue rounded-md transition-all"
+            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-blue rounded-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-folder-open w-6 text-center"></i>
+            <i class="fas fa-folder-open w-5 sm:w-6 text-center"></i>
             <span>All Files</span>
           </a>
           <a
             href="#"
             onclick="switchDashboardSection('doctors', true)"
             id="mobile-nav-doctors"
-            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-green rounded-md transition-all"
+            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-green rounded-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-user-md w-6 text-center"></i>
+            <i class="fas fa-user-md w-5 sm:w-6 text-center"></i>
             <span>Doctors</span>
           </a>
           <a
             href="#"
             onclick="switchDashboardSection('analytics', true)"
             id="mobile-nav-analytics"
-            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-pink rounded-md transition-all"
+            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-pink rounded-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-chart-bar w-6 text-center"></i>
+            <i class="fas fa-chart-bar w-5 sm:w-6 text-center"></i>
             <span>Analytics</span>
           </a>
           <a
             href="#"
             onclick="switchDashboardSection('settings', true)"
             id="mobile-nav-settings"
-            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-purple rounded-md transition-all"
+            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-purple rounded-md transition-all text-sm sm:text-base"
           >
-            <i class="fas fa-cog w-6 text-center"></i>
+            <i class="fas fa-cog w-5 sm:w-6 text-center"></i>
             <span>Settings</span>
           </a>
         </nav>
 
-        <div class="p-4 border-t border-gray-800">
+        <div class="p-3 sm:p-4 border-t border-gray-800 mt-auto">
+          <div class="mb-3">
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <span>Storage</span>
+              <span id="mobile-sidebar-storage-used" class="text-xs"
+                >0 MB / 100 MB</span
+              >
+            </div>
+            <div class="storage-bar">
+              <div
+                id="mobile-sidebar-storage-fill"
+                class="storage-fill bg-gradient-to-r from-neon-blue to-cyan-500"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
           <button
             onclick="logout()"
-            class="w-full flex items-center justify-center gap-2 p-2 text-gray-400 hover:text-red-400 transition-colors bg-gray-800/50 rounded-lg hover:bg-gray-800"
+            class="w-full flex items-center justify-center gap-2 p-2 text-gray-400 hover:text-red-400 transition-colors bg-gray-800/50 rounded-lg hover:bg-gray-800 text-sm"
           >
             <i class="fas fa-sign-out-alt"></i> Logout
           </button>
@@ -526,86 +719,96 @@
       </aside>
       <div
         id="mobile-sidebar-backdrop"
-        class="hidden fixed inset-0 bg-black/50 z-30 md:hidden"
+        class="hidden fixed inset-0 bg-black/50 z-30 lg:hidden"
         onclick="toggleMobileSidebar()"
       ></div>
 
       <!-- Main Content -->
       <main
-        class="flex-1 flex flex-col relative bg-gradient-to-br from-gray-900/50 to-slate-900/50 overflow-hidden"
+        class="flex-1 flex flex-col relative bg-gradient-to-br from-gray-900/50 to-slate-900/50 overflow-hidden-mobile"
       >
         <header
-          class="h-16 border-b border-gray-800 flex items-center justify-between px-6 bg-gray-900/70 backdrop-blur-md sticky top-0 z-10"
+          class="h-14 sm:h-16 border-b border-gray-800 flex items-center justify-between px-3 sm:px-4 md:px-6 bg-gray-900/70 backdrop-blur-md sticky top-0 z-10 safe-area-top"
         >
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 sm:gap-3">
             <button
               onclick="toggleMobileSidebar()"
-              class="text-white text-xl md:hidden hover:text-neon-blue"
+              class="text-white text-lg sm:text-xl lg:hidden hover:text-neon-blue p-1"
+              aria-label="Menu"
             >
               <i class="fas fa-bars"></i>
             </button>
             <h2
               id="main-content-title"
-              class="text-xl font-semibold text-white"
+              class="text-base sm:text-lg md:text-xl font-semibold text-white truncate max-w-[150px] sm:max-w-none"
             >
               Dashboard Overview
             </h2>
           </div>
 
-          <div class="flex items-center gap-4">
-            <div class="relative hidden sm:block">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="relative hidden xs:block">
               <i
-                class="fas fa-search absolute left-3 top-2.5 text-gray-500"
+                class="fas fa-search absolute left-3 top-2.5 text-gray-500 text-sm"
               ></i>
               <input
                 type="text"
                 id="search-input"
-                placeholder="Search doctor or date..."
-                class="bg-gray-800 border border-gray-700 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:ring-2 focus:ring-neon-blue outline-none w-48 transition-all focus:w-64"
+                placeholder="Search..."
+                class="bg-gray-800 border border-gray-700 rounded-full py-1.5 sm:py-2 pl-8 pr-3 text-xs sm:text-sm text-white focus:ring-2 focus:ring-neon-blue outline-none w-28 sm:w-36 md:w-48 transition-all focus:w-32 sm:focus:w-40 md:focus:w-64"
               />
             </div>
 
             <button
               onclick="openUploadModal()"
-              class="bg-gradient-to-r from-neon-blue to-cyan-500 hover:from-cyan-500 hover:to-neon-blue text-black font-bold py-2 px-4 rounded-full shadow-neon-blue transition-all flex items-center gap-2 tooltip"
-              data-tooltip="Upload new prescription"
+              class="bg-gradient-to-r from-neon-blue to-cyan-500 hover:from-cyan-500 hover:to-neon-blue text-black font-bold py-1.5 sm:py-2 px-3 sm:px-4 rounded-full shadow-neon-blue transition-all flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              aria-label="Upload"
             >
-              <i class="fas fa-plus"></i>
+              <i class="fas fa-plus text-xs sm:text-sm"></i>
               <span class="hidden sm:inline">Upload</span>
             </button>
 
             <button
               onclick="refreshDashboard()"
-              class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full transition-colors tooltip"
-              data-tooltip="Refresh data"
+              class="bg-gray-800 hover:bg-gray-700 text-white p-1.5 sm:p-2 rounded-full transition-colors"
+              aria-label="Refresh"
             >
-              <i class="fas fa-sync-alt"></i>
+              <i class="fas fa-sync-alt text-sm sm:text-base"></i>
             </button>
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-6" id="dashboard-content">
+        <div
+          class="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6"
+          id="dashboard-content"
+        >
           <!-- Overview Section -->
           <div id="overview-section" class="">
-            <h3 class="text-2xl font-bold text-neon-blue mb-6">
+            <h3
+              class="text-xl sm:text-2xl font-bold text-neon-blue mb-4 sm:mb-6"
+            >
               <i class="fas fa-tachometer-alt mr-2"></i> Dashboard Overview
             </h3>
 
             <!-- Storage Summary Card -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="mb-4 sm:mb-6">
               <div
-                class="col-span-full bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-blue/20"
+                class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 shadow-neon-blue/20"
               >
-                <h4 class="text-lg font-semibold text-white mb-4">
+                <h4
+                  class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
+                >
                   Storage Summary
                 </h4>
-                <div class="space-y-4">
+                <div class="space-y-3 sm:space-y-4">
                   <div>
                     <div
-                      class="flex justify-between text-sm text-gray-400 mb-1"
+                      class="flex justify-between text-xs sm:text-sm text-gray-400 mb-1"
                     >
                       <span>Used Storage</span>
-                      <span id="storage-used">0 MB</span>
+                      <span id="storage-used" class="text-xs sm:text-sm"
+                        >0 MB</span
+                      >
                     </div>
                     <div class="storage-bar">
                       <div
@@ -615,12 +818,14 @@
                       ></div>
                     </div>
                   </div>
-                  <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div
+                    class="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm"
+                  >
                     <div class="bg-gray-800/50 p-3 rounded-lg">
                       <p class="text-gray-400">Total Files</p>
                       <p
                         id="storage-total-files"
-                        class="text-xl font-bold text-white"
+                        class="text-lg sm:text-xl font-bold text-white"
                       >
                         0
                       </p>
@@ -629,7 +834,7 @@
                       <p class="text-gray-400">Avg. File Size</p>
                       <p
                         id="storage-avg-size"
-                        class="text-xl font-bold text-white"
+                        class="text-lg sm:text-xl font-bold text-white"
                       >
                         0 KB
                       </p>
@@ -639,22 +844,26 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8"
+            >
               <!-- Total Prescriptions Card -->
               <div
-                class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-blue/20 flex items-center gap-4 hover:border-neon-blue transition-colors cursor-pointer"
+                class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 shadow-neon-blue/20 flex items-center gap-3 sm:gap-4 hover:border-neon-blue transition-colors cursor-pointer"
                 onclick="switchDashboardSection('files')"
               >
                 <div
-                  class="p-4 bg-neon-blue/20 rounded-full text-neon-blue text-3xl"
+                  class="p-3 sm:p-4 bg-neon-blue/20 rounded-full text-neon-blue text-2xl sm:text-3xl"
                 >
                   <i class="fas fa-file-prescription"></i>
                 </div>
                 <div>
-                  <p class="text-gray-400 text-sm">Total Prescriptions</p>
+                  <p class="text-gray-400 text-xs sm:text-sm">
+                    Total Prescriptions
+                  </p>
                   <p
                     id="total-prescriptions-count"
-                    class="text-3xl font-bold text-white"
+                    class="text-2xl sm:text-3xl font-bold text-white"
                   >
                     0
                   </p>
@@ -663,19 +872,19 @@
 
               <!-- Total Doctors Card -->
               <div
-                class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-purple/20 flex items-center gap-4 hover:border-neon-purple transition-colors cursor-pointer"
+                class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 shadow-neon-purple/20 flex items-center gap-3 sm:gap-4 hover:border-neon-purple transition-colors cursor-pointer"
                 onclick="switchDashboardSection('doctors')"
               >
                 <div
-                  class="p-4 bg-neon-purple/20 rounded-full text-neon-purple text-3xl"
+                  class="p-3 sm:p-4 bg-neon-purple/20 rounded-full text-neon-purple text-2xl sm:text-3xl"
                 >
                   <i class="fas fa-user-md"></i>
                 </div>
                 <div>
-                  <p class="text-gray-400 text-sm">Unique Doctors</p>
+                  <p class="text-gray-400 text-xs sm:text-sm">Unique Doctors</p>
                   <p
                     id="total-doctors-count"
-                    class="text-3xl font-bold text-white"
+                    class="text-2xl sm:text-3xl font-bold text-white"
                   >
                     0
                   </p>
@@ -684,16 +893,19 @@
 
               <!-- Recent Uploads Card -->
               <div
-                class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-green/20 flex items-center gap-4 hover:border-neon-green transition-colors"
+                class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 shadow-neon-green/20 flex items-center gap-3 sm:gap-4 hover:border-neon-green transition-colors"
               >
                 <div
-                  class="p-4 bg-neon-green/20 rounded-full text-neon-green text-3xl"
+                  class="p-3 sm:p-4 bg-neon-green/20 rounded-full text-neon-green text-2xl sm:text-3xl"
                 >
                   <i class="fas fa-clock"></i>
                 </div>
                 <div>
-                  <p class="text-gray-400 text-sm">Recent Upload</p>
-                  <p id="recent-upload" class="text-lg font-bold text-white">
+                  <p class="text-gray-400 text-xs sm:text-sm">Recent Upload</p>
+                  <p
+                    id="recent-upload"
+                    class="text-base sm:text-lg font-bold text-white truncate"
+                  >
                     No files yet
                   </p>
                 </div>
@@ -701,37 +913,49 @@
             </div>
 
             <!-- Quick Actions -->
-            <div class="mt-9 mb-5">
-              <h4 class="text-lg font-semibold text-white mb-4">
+            <div class="mt-6 sm:mt-9 mb-4 sm:mb-5">
+              <h4
+                class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
+              >
                 Quick Actions
               </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div
+                class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+              >
                 <button
                   onclick="openUploadModal()"
-                  class="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-xl flex items-center gap-3 transition-colors"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-3 sm:p-4 rounded-xl flex items-center gap-2 sm:gap-3 transition-colors text-sm sm:text-base"
                 >
-                  <i class="fas fa-upload text-neon-blue"></i>
+                  <i
+                    class="fas fa-upload text-neon-blue text-sm sm:text-base"
+                  ></i>
                   <span>Upload New</span>
                 </button>
                 <button
                   onclick="exportData()"
-                  class="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-xl flex items-center gap-3 transition-colors"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-3 sm:p-4 rounded-xl flex items-center gap-2 sm:gap-3 transition-colors text-sm sm:text-base"
                 >
-                  <i class="fas fa-download text-neon-green"></i>
+                  <i
+                    class="fas fa-download text-neon-green text-sm sm:text-base"
+                  ></i>
                   <span>Export Data</span>
                 </button>
                 <button
                   onclick="showHelp()"
-                  class="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-xl flex items-center gap-3 transition-colors"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-3 sm:p-4 rounded-xl flex items-center gap-2 sm:gap-3 transition-colors text-sm sm:text-base"
                 >
-                  <i class="fas fa-question-circle text-neon-purple"></i>
+                  <i
+                    class="fas fa-question-circle text-neon-purple text-sm sm:text-base"
+                  ></i>
                   <span>Help & Guide</span>
                 </button>
                 <button
                   onclick="clearFilters()"
-                  class="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-xl flex items-center gap-3 transition-colors"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-3 sm:p-4 rounded-xl flex items-center gap-2 sm:gap-3 transition-colors text-sm sm:text-base"
                 >
-                  <i class="fas fa-filter text-neon-pink"></i>
+                  <i
+                    class="fas fa-filter text-neon-pink text-sm sm:text-base"
+                  ></i>
                   <span>Clear Filters</span>
                 </button>
               </div>
@@ -740,15 +964,17 @@
 
           <!-- Files Section -->
           <div id="files-section" class="hidden-section">
-            <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
-              <h3 class="text-2xl font-bold text-neon-blue">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4"
+            >
+              <h3 class="text-xl sm:text-2xl font-bold text-neon-blue">
                 <i class="fas fa-folder-open mr-2"></i> All Prescriptions
               </h3>
-              <div class="flex gap-2">
+              <div class="flex gap-2 w-full sm:w-auto">
                 <select
                   id="sort-select"
                   onchange="sortFiles()"
-                  class="neon-input text-sm py-2 px-3 rounded-lg"
+                  class="neon-input text-xs sm:text-sm py-2 px-3 rounded-lg flex-1 sm:flex-none"
                 >
                   <option value="date-desc">Newest First</option>
                   <option value="date-asc">Oldest First</option>
@@ -759,8 +985,8 @@
                 </select>
                 <button
                   onclick="toggleViewMode()"
-                  class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg tooltip"
-                  data-tooltip="Toggle view"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  aria-label="Toggle view"
                 >
                   <i id="view-toggle-icon" class="fas fa-list"></i>
                 </button>
@@ -768,94 +994,121 @@
             </div>
             <div
               id="files-container"
-              class="h-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start"
+              class="responsive-grid gap-4 sm:gap-6 content-start"
             >
-              <div class="text-center col-span-full mt-20 text-gray-500">
+              <div
+                class="text-center col-span-full mt-10 sm:mt-20 text-gray-500"
+              >
                 <i
-                  class="fas fa-spinner fa-spin text-3xl mb-4 text-neon-blue"
+                  class="fas fa-spinner fa-spin text-2xl sm:text-3xl mb-3 sm:mb-4 text-neon-blue"
                 ></i>
-                <p>Loading records...</p>
+                <p class="text-sm">Loading records...</p>
               </div>
             </div>
           </div>
 
           <!-- Doctors Section -->
           <div id="doctors-section" class="hidden-section">
-            <h3 class="text-2xl font-bold text-neon-green mb-6">
+            <h3
+              class="text-xl sm:text-2xl font-bold text-neon-green mb-4 sm:mb-6"
+            >
               <i class="fas fa-user-md mr-2"></i> Doctors & Clinics
             </h3>
             <div
               id="doctors-list-container"
-              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
             >
-              <div class="text-center col-span-full mt-10 text-gray-500">
+              <div
+                class="text-center col-span-full mt-6 sm:mt-10 text-gray-500"
+              >
                 <i
-                  class="fas fa-spinner fa-spin text-3xl mb-4 text-neon-green"
+                  class="fas fa-spinner fa-spin text-2xl sm:text-3xl mb-3 sm:mb-4 text-neon-green"
                 ></i>
-                <p>Loading doctors...</p>
+                <p class="text-sm">Loading doctors...</p>
               </div>
             </div>
           </div>
 
           <!-- Analytics Section -->
           <div id="analytics-section" class="hidden-section">
-            <h3 class="text-2xl font-bold text-neon-pink mb-6">
+            <h3
+              class="text-xl sm:text-2xl font-bold text-neon-pink mb-4 sm:mb-6"
+            >
               <i class="fas fa-chart-bar mr-2"></i> Analytics
             </h3>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <h4 class="text-lg font-semibold text-white mb-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div
+                class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6"
+              >
+                <h4
+                  class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
+                >
                   Storage Usage by Type
                 </h4>
                 <div
                   id="storage-chart"
-                  class="h-64 flex items-center justify-center text-gray-500"
+                  class="h-48 sm:h-64 flex items-center justify-center text-gray-500 text-sm"
                 >
                   <p>Chart will appear here</p>
                 </div>
               </div>
-              <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <h4 class="text-lg font-semibold text-white mb-4">
+              <div
+                class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6"
+              >
+                <h4
+                  class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
+                >
                   Upload Activity
                 </h4>
                 <div
                   id="activity-chart"
-                  class="h-64 flex items-center justify-center text-gray-500"
+                  class="h-48 sm:h-64 flex items-center justify-center text-gray-500 text-sm"
                 >
                   <p>Activity chart will appear here</p>
                 </div>
               </div>
               <div
-                class="col-span-full bg-gray-900 border border-gray-800 rounded-xl p-6"
+                class="col-span-full bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6"
               >
-                <h4 class="text-lg font-semibold text-white mb-4">
+                <h4
+                  class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
+                >
                   File Statistics
                 </h4>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div class="text-center p-4 bg-gray-800/50 rounded-lg">
-                    <p class="text-gray-400 text-sm">Total Files</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                  <div class="text-center p-3 sm:p-4 bg-gray-800/50 rounded-lg">
+                    <p class="text-gray-400 text-xs sm:text-sm">Total Files</p>
                     <p
                       id="stats-total-files"
-                      class="text-2xl font-bold text-white"
+                      class="text-xl sm:text-2xl font-bold text-white"
                     >
                       0
                     </p>
                   </div>
-                  <div class="text-center p-4 bg-gray-800/50 rounded-lg">
-                    <p class="text-gray-400 text-sm">Images</p>
-                    <p id="stats-images" class="text-2xl font-bold text-white">
+                  <div class="text-center p-3 sm:p-4 bg-gray-800/50 rounded-lg">
+                    <p class="text-gray-400 text-xs sm:text-sm">Images</p>
+                    <p
+                      id="stats-images"
+                      class="text-xl sm:text-2xl font-bold text-white"
+                    >
                       0
                     </p>
                   </div>
-                  <div class="text-center p-4 bg-gray-800/50 rounded-lg">
-                    <p class="text-gray-400 text-sm">PDFs</p>
-                    <p id="stats-pdfs" class="text-2xl font-bold text-white">
+                  <div class="text-center p-3 sm:p-4 bg-gray-800/50 rounded-lg">
+                    <p class="text-gray-400 text-xs sm:text-sm">PDFs</p>
+                    <p
+                      id="stats-pdfs"
+                      class="text-xl sm:text-2xl font-bold text-white"
+                    >
                       0
                     </p>
                   </div>
-                  <div class="text-center p-4 bg-gray-800/50 rounded-lg">
-                    <p class="text-gray-400 text-sm">Other</p>
-                    <p id="stats-other" class="text-2xl font-bold text-white">
+                  <div class="text-center p-3 sm:p-4 bg-gray-800/50 rounded-lg">
+                    <p class="text-gray-400 text-xs sm:text-sm">Other</p>
+                    <p
+                      id="stats-other"
+                      class="text-xl sm:text-2xl font-bold text-white"
+                    >
                       0
                     </p>
                   </div>
@@ -865,57 +1118,67 @@
           </div>
 
           <!-- Settings Section -->
-          <div id="settings-section" class="hidden-section max-w-2xl mx-auto">
-            <h3 class="text-2xl font-bold text-neon-purple mb-6">
+          <div id="settings-section" class="hidden-section">
+            <h3
+              class="text-xl sm:text-2xl font-bold text-neon-purple mb-4 sm:mb-6"
+            >
               <i class="fas fa-cog mr-2"></i> User Settings
             </h3>
 
             <div
-              class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-purple/20 mb-6"
+              class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 shadow-neon-purple/20 mb-4 sm:mb-6"
             >
-              <h4 class="text-xl font-semibold mb-4 text-white">
+              <h4
+                class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-white"
+              >
                 Change Password (Token-Based)
               </h4>
-              <form id="dashboard-change-password-form" class="space-y-4">
+              <form
+                id="dashboard-change-password-form"
+                class="space-y-3 sm:space-y-4"
+              >
                 <div>
-                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                  <label
+                    class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
                     >Reset Token</label
                   >
                   <input
                     type="text"
                     id="reset-token-input"
-                    class="neon-input w-full p-3 rounded-lg"
+                    class="neon-input w-full p-2.5 sm:p-3 rounded-lg text-sm"
                     placeholder="Paste your reset token here..."
                     required
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                  <label
+                    class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
                     >New Password</label
                   >
                   <input
                     type="password"
                     id="dash-new-pwd"
-                    class="neon-input w-full p-3 rounded-lg"
+                    class="neon-input w-full p-2.5 sm:p-3 rounded-lg text-sm"
                     placeholder="New Password"
                     required
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                  <label
+                    class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
                     >Confirm New Password</label
                   >
                   <input
                     type="password"
                     id="dash-confirm-pwd"
-                    class="neon-input w-full p-3 rounded-lg"
+                    class="neon-input w-full p-2.5 sm:p-3 rounded-lg text-sm"
                     placeholder="Confirm New Password"
                     required
                   />
                 </div>
                 <button
                   type="submit"
-                  class="w-full bg-gradient-to-r from-neon-purple to-pink-600 hover:from-neon-purple/90 text-white font-bold py-3 rounded-lg shadow-neon-purple transition-all"
+                  class="w-full bg-gradient-to-r from-neon-purple to-pink-600 hover:from-neon-purple/90 text-white font-bold py-2.5 sm:py-3 rounded-lg shadow-neon-purple transition-all text-sm sm:text-base"
                 >
                   <i class="fas fa-key mr-2"></i> Change Password
                 </button>
@@ -923,43 +1186,54 @@
             </div>
 
             <div
-              class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-blue/20 mb-6"
+              class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 shadow-neon-blue/20 mb-4 sm:mb-6"
             >
-              <h4 class="text-xl font-semibold mb-4 text-white">
+              <h4
+                class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-white"
+              >
                 Account Information
               </h4>
-              <div class="space-y-3">
+              <div class="space-y-2 sm:space-y-3">
                 <div>
-                  <p class="text-sm text-gray-400">Email</p>
-                  <p id="settings-email" class="text-neon-blue font-mono">
+                  <p class="text-xs sm:text-sm text-gray-400">Email</p>
+                  <p
+                    id="settings-email"
+                    class="text-neon-blue font-mono text-sm sm:text-base truncate"
+                  >
                     user@example.com
                   </p>
                 </div>
                 <div>
-                  <p class="text-sm text-gray-400">User ID</p>
+                  <p class="text-xs sm:text-sm text-gray-400">User ID</p>
                   <p
                     id="settings-user-id"
-                    class="text-gray-500 font-mono text-xs"
+                    class="text-gray-500 font-mono text-xs truncate"
                   >
                     Loading...
                   </p>
                 </div>
                 <div>
-                  <p class="text-sm text-gray-400">Account Created</p>
-                  <p id="settings-created" class="text-gray-500">-</p>
+                  <p class="text-xs sm:text-sm text-gray-400">
+                    Account Created
+                  </p>
+                  <p id="settings-created" class="text-gray-500 text-sm">-</p>
                 </div>
               </div>
             </div>
 
             <div
-              class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-green/20"
+              class="bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-6 shadow-neon-green/20"
             >
-              <h4 class="text-xl font-semibold mb-4 text-white">
+              <h4
+                class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-white"
+              >
                 Storage Settings
               </h4>
-              <div class="space-y-4">
+              <div class="space-y-3 sm:space-y-4">
                 <div>
-                  <div class="flex justify-between text-sm text-gray-400 mb-1">
+                  <div
+                    class="flex justify-between text-xs sm:text-sm text-gray-400 mb-1"
+                  >
                     <span>Storage Limit</span>
                     <span>100 MB</span>
                   </div>
@@ -973,7 +1247,7 @@
                 </div>
                 <button
                   onclick="clearAllFiles()"
-                  class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-all"
+                  class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 sm:py-3 rounded-lg transition-all text-sm sm:text-base"
                 >
                   <i class="fas fa-trash-alt mr-2"></i> Clear All Files (Danger)
                 </button>
@@ -991,52 +1265,58 @@
     <!-- Upload Modal -->
     <div
       id="upload-modal"
-      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4"
+      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-3 sm:p-4"
     >
       <div
-        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl relative"
+        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl relative mx-2 max-h-[90vh] overflow-y-auto"
       >
         <button
           onclick="closeModal('upload-modal')"
-          class="absolute top-4 right-4 text-gray-400 hover:text-white"
+          class="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-400 hover:text-white p-1"
+          aria-label="Close"
         >
-          <i class="fas fa-times text-xl"></i>
+          <i class="fas fa-times text-lg sm:text-xl"></i>
         </button>
 
-        <div class="p-6 border-b border-gray-800">
-          <h3 class="text-xl font-bold text-white">Upload Prescription</h3>
+        <div class="p-4 sm:p-6 border-b border-gray-800">
+          <h3 class="text-lg sm:text-xl font-bold text-white">
+            Upload Prescription
+          </h3>
         </div>
 
-        <form id="upload-form" class="p-6 space-y-4">
+        <form id="upload-form" class="p-4 sm:p-6 space-y-3 sm:space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Doctor/Clinic Name</label
             >
             <input
               type="text"
               id="upload-doctor"
-              class="neon-input w-full p-3 rounded-lg"
+              class="neon-input w-full p-2.5 sm:p-3 rounded-lg text-sm"
               placeholder="e.g. Dr. Strange"
               required
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Date of Visit</label
             >
             <input
               type="date"
               id="upload-date"
-              class="neon-input w-full p-3 rounded-lg text-gray-300"
+              class="neon-input w-full p-2.5 sm:p-3 rounded-lg text-gray-300 text-sm"
               required
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >File (Image/PDF)</label
             >
             <div
-              class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-neon-blue transition-colors cursor-pointer relative group"
+              class="border-2 border-dashed border-gray-600 rounded-lg p-4 sm:p-6 text-center hover:border-neon-blue transition-colors cursor-pointer relative group"
             >
               <input
                 type="file"
@@ -1046,26 +1326,31 @@
                 required
               />
               <i
-                class="fas fa-cloud-upload-alt text-3xl text-gray-500 group-hover:text-neon-blue mb-2"
+                class="fas fa-cloud-upload-alt text-2xl sm:text-3xl text-gray-500 group-hover:text-neon-blue mb-1 sm:mb-2"
               ></i>
-              <p class="text-sm text-gray-400 group-hover:text-white">
+              <p
+                class="text-xs sm:text-sm text-gray-400 group-hover:text-white"
+              >
                 Click or drag file to upload
               </p>
-              <p id="file-name-display" class="text-xs text-neon-blue mt-2"></p>
+              <p
+                id="file-name-display"
+                class="text-xs text-neon-blue mt-1 sm:mt-2 truncate"
+              ></p>
               <p class="text-xs text-gray-500 mt-1">Max file size: 5MB</p>
             </div>
           </div>
-          <div class="pt-4 flex justify-end gap-3">
+          <div class="pt-3 sm:pt-4 flex justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onclick="closeModal('upload-modal')"
-              class="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 text-sm sm:text-base"
             >
               Cancel
             </button>
             <button
               type="submit"
-              class="bg-gradient-to-r from-neon-blue to-cyan-500 text-black font-bold px-6 py-2 rounded-lg hover:shadow-neon-blue transition-all"
+              class="bg-gradient-to-r from-neon-blue to-cyan-500 text-black font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg hover:shadow-neon-blue transition-all text-sm sm:text-base"
             >
               Upload
             </button>
@@ -1077,55 +1362,58 @@
     <!-- Edit Modal -->
     <div
       id="edit-modal"
-      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4"
+      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-3 sm:p-4"
     >
       <div
-        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl relative"
+        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl relative mx-2 max-h-[90vh] overflow-y-auto"
       >
         <button
           onclick="closeModal('edit-modal')"
-          class="absolute top-4 right-4 text-gray-400 hover:text-white"
+          class="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-400 hover:text-white p-1"
+          aria-label="Close"
         >
-          <i class="fas fa-times text-xl"></i>
+          <i class="fas fa-times text-lg sm:text-xl"></i>
         </button>
-        <div class="p-6 border-b border-gray-800">
-          <h3 class="text-xl font-bold text-white">Edit Details</h3>
+        <div class="p-4 sm:p-6 border-b border-gray-800">
+          <h3 class="text-lg sm:text-xl font-bold text-white">Edit Details</h3>
         </div>
-        <form id="edit-form" class="p-6 space-y-4">
+        <form id="edit-form" class="p-4 sm:p-6 space-y-3 sm:space-y-4">
           <input type="hidden" id="edit-id" />
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Doctor/Clinic Name</label
             >
             <input
               type="text"
               id="edit-doctor"
-              class="neon-input w-full p-3 rounded-lg"
+              class="neon-input w-full p-2.5 sm:p-3 rounded-lg text-sm"
               required
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1"
+            <label
+              class="block text-xs sm:text-sm font-medium text-gray-400 mb-1"
               >Date of Visit</label
             >
             <input
               type="date"
               id="edit-date"
-              class="neon-input w-full p-3 rounded-lg text-gray-300"
+              class="neon-input w-full p-2.5 sm:p-3 rounded-lg text-gray-300 text-sm"
               required
             />
           </div>
-          <div class="pt-4 flex justify-end gap-3">
+          <div class="pt-3 sm:pt-4 flex justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onclick="closeModal('edit-modal')"
-              class="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 text-sm sm:text-base"
             >
               Cancel
             </button>
             <button
               type="submit"
-              class="bg-gradient-to-r from-neon-purple to-pink-600 text-white font-bold px-6 py-2 rounded-lg hover:shadow-neon-purple transition-all"
+              class="bg-gradient-to-r from-neon-purple to-pink-600 text-white font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg hover:shadow-neon-purple transition-all text-sm sm:text-base"
             >
               Update
             </button>
@@ -1137,107 +1425,119 @@
     <!-- Preview Modal -->
     <div
       id="preview-modal"
-      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4"
+      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-3 sm:p-4"
     >
       <div
-        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-4xl shadow-2xl relative"
+        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-4xl shadow-2xl relative mx-2 max-h-[90vh] flex flex-col"
       >
         <button
           onclick="closeModal('preview-modal')"
-          class="absolute top-4 right-4 text-gray-400 hover:text-white z-10"
+          class="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-400 hover:text-white z-10 p-1"
+          aria-label="Close"
         >
-          <i class="fas fa-times text-xl"></i>
+          <i class="fas fa-times text-lg sm:text-xl"></i>
         </button>
 
         <div
-          class="p-6 border-b border-gray-800 flex justify-between items-center"
+          class="p-4 sm:p-6 border-b border-gray-800 flex justify-between items-center flex-wrap gap-2"
         >
-          <h3 class="text-xl font-bold text-white">
+          <h3
+            class="text-lg sm:text-xl font-bold text-white truncate max-w-[70%]"
+          >
             <span id="preview-title">Preview</span>
           </h3>
-          <div class="flex gap-2">
+          <div class="flex gap-1 sm:gap-2 flex-wrap">
             <button
               onclick="rotatePreview(-90)"
-              class="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg tooltip"
-              data-tooltip="Rotate Left"
+              class="p-1.5 sm:p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg"
+              aria-label="Rotate Left"
             >
-              <i class="fas fa-rotate-left"></i>
+              <i class="fas fa-rotate-left text-sm sm:text-base"></i>
             </button>
             <button
               onclick="rotatePreview(90)"
-              class="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg tooltip"
-              data-tooltip="Rotate Right"
+              class="p-1.5 sm:p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg"
+              aria-label="Rotate Right"
             >
-              <i class="fas fa-rotate-right"></i>
+              <i class="fas fa-rotate-right text-sm sm:text-base"></i>
             </button>
             <a
               id="preview-download-btn"
               href="#"
-              class="p-2 text-gray-400 hover:text-neon-green hover:bg-gray-800 rounded-lg tooltip"
-              data-tooltip="Download"
+              class="p-1.5 sm:p-2 text-gray-400 hover:text-neon-green hover:bg-gray-800 rounded-lg"
+              aria-label="Download"
               target="_blank"
             >
-              <i class="fas fa-download"></i>
+              <i class="fas fa-download text-sm sm:text-base"></i>
             </a>
             <button
               onclick="zoomPreviewIn()"
-              class="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg tooltip"
-              data-tooltip="Zoom In"
+              class="p-1.5 sm:p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg"
+              aria-label="Zoom In"
             >
-              <i class="fas fa-search-plus"></i>
+              <i class="fas fa-search-plus text-sm sm:text-base"></i>
             </button>
             <button
               onclick="zoomPreviewOut()"
-              class="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg tooltip"
-              data-tooltip="Zoom Out"
+              class="p-1.5 sm:p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg"
+              aria-label="Zoom Out"
             >
-              <i class="fas fa-search-minus"></i>
+              <i class="fas fa-search-minus text-sm sm:text-base"></i>
             </button>
           </div>
         </div>
 
-        <div class="p-6 preview-container">
-          <div id="preview-content" class="text-center">
-            <div class="flex items-center justify-center h-64">
-              <i class="fas fa-spinner fa-spin text-4xl text-neon-blue"></i>
-              <span class="ml-4">Loading preview...</span>
+        <div class="p-4 sm:p-6 preview-container flex-1">
+          <div
+            id="preview-content"
+            class="text-center h-full flex items-center justify-center"
+          >
+            <div class="flex items-center justify-center h-48 sm:h-64">
+              <i
+                class="fas fa-spinner fa-spin text-3xl sm:text-4xl text-neon-blue"
+              ></i>
+              <span class="ml-3 sm:ml-4 text-sm sm:text-base"
+                >Loading preview...</span
+              >
             </div>
           </div>
           <div
             id="preview-pdf-controls"
-            class="hidden mt-4 flex items-center justify-center gap-4"
+            class="hidden mt-3 sm:mt-4 flex items-center justify-center gap-2 sm:gap-4 flex-wrap"
           >
             <button
               onclick="prevPage()"
-              class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-800 rounded-lg hover:bg-gray-700 text-xs sm:text-sm"
             >
               <i class="fas fa-chevron-left"></i> Previous
             </button>
-            <span id="page-info" class="text-sm text-gray-400"
+            <span id="page-info" class="text-xs sm:text-sm text-gray-400"
               >Page 1 of 1</span
             >
             <button
               onclick="nextPage()"
-              class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-800 rounded-lg hover:bg-gray-700 text-xs sm:text-sm"
             >
               Next <i class="fas fa-chevron-right"></i>
             </button>
           </div>
         </div>
 
-        <div class="p-6 border-t border-gray-800 text-sm text-gray-400">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div
+          class="p-4 sm:p-6 border-t border-gray-800 text-xs sm:text-sm text-gray-400"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <p class="font-medium">Doctor</p>
-              <p id="preview-doctor" class="text-white">-</p>
+              <p id="preview-doctor" class="text-white text-sm truncate">-</p>
             </div>
             <div>
               <p class="font-medium">Date</p>
-              <p id="preview-date" class="text-white">-</p>
+              <p id="preview-date" class="text-white text-sm">-</p>
             </div>
             <div>
               <p class="font-medium">File Size</p>
-              <p id="preview-size" class="text-white">-</p>
+              <p id="preview-size" class="text-white text-sm">-</p>
             </div>
           </div>
         </div>
@@ -1247,53 +1547,66 @@
     <!-- Help Modal -->
     <div
       id="help-modal"
-      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4"
+      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-3 sm:p-4"
     >
       <div
-        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl shadow-2xl relative"
+        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl shadow-2xl relative mx-2 max-h-[90vh] overflow-y-auto"
       >
         <button
           onclick="closeModal('help-modal')"
-          class="absolute top-4 right-4 text-gray-400 hover:text-white"
+          class="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-400 hover:text-white p-1"
+          aria-label="Close"
         >
-          <i class="fas fa-times text-xl"></i>
+          <i class="fas fa-times text-lg sm:text-xl"></i>
         </button>
 
-        <div class="p-6 border-b border-gray-800">
-          <h3 class="text-xl font-bold text-white">
+        <div class="p-4 sm:p-6 border-b border-gray-800">
+          <h3 class="text-lg sm:text-xl font-bold text-white">
             <i class="fas fa-question-circle mr-2"></i> Help & Guide
           </h3>
         </div>
 
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
           <div>
-            <h4 class="font-semibold text-neon-blue mb-2">Uploading Files</h4>
-            <p class="text-gray-400 text-sm">
+            <h4
+              class="font-semibold text-neon-blue mb-1 sm:mb-2 text-sm sm:text-base"
+            >
+              Uploading Files
+            </h4>
+            <p class="text-gray-400 text-xs sm:text-sm">
               Supported formats: PDF, JPG, PNG, GIF. Max file size: 5MB per
               file.
             </p>
           </div>
           <div>
-            <h4 class="font-semibold text-neon-green mb-2">
+            <h4
+              class="font-semibold text-neon-green mb-1 sm:mb-2 text-sm sm:text-base"
+            >
               Storage Management
             </h4>
-            <p class="text-gray-400 text-sm">
+            <p class="text-gray-400 text-xs sm:text-sm">
               You have 100MB of storage. Monitor your usage in the sidebar and
               overview sections.
             </p>
           </div>
           <div>
-            <h4 class="font-semibold text-neon-purple mb-2">
+            <h4
+              class="font-semibold text-neon-purple mb-1 sm:mb-2 text-sm sm:text-base"
+            >
               Preview Features
             </h4>
-            <p class="text-gray-400 text-sm">
+            <p class="text-gray-400 text-xs sm:text-sm">
               Click PREVIEW to view files in modal. Use rotate, zoom, and page
               controls for PDFs.
             </p>
           </div>
           <div>
-            <h4 class="font-semibold text-neon-pink mb-2">Search & Sort</h4>
-            <p class="text-gray-400 text-sm">
+            <h4
+              class="font-semibold text-neon-pink mb-1 sm:mb-2 text-sm sm:text-base"
+            >
+              Search & Sort
+            </h4>
+            <p class="text-gray-400 text-xs sm:text-sm">
               Search by doctor name or date. Sort by various criteria using the
               dropdown.
             </p>
@@ -1326,17 +1639,17 @@
 
         if (type === 'error') {
           content.className =
-            'bg-gray-800 border-l-4 border-red-500 text-white px-6 py-4 rounded shadow-[0_0_10px_red] flex items-center gap-3';
+            'bg-gray-800 border-l-4 border-red-500 text-white px-4 py-3 rounded shadow-[0_0_10px_red] flex items-center gap-3 text-sm';
           content.querySelector('i').className =
             'fas fa-exclamation-circle text-red-500';
         } else if (type === 'warning') {
           content.className =
-            'bg-gray-800 border-l-4 border-yellow-500 text-white px-6 py-4 rounded shadow-[0_0_10px_#eab308] flex items-center gap-3';
+            'bg-gray-800 border-l-4 border-yellow-500 text-white px-4 py-3 rounded shadow-[0_0_10px_#eab308] flex items-center gap-3 text-sm';
           content.querySelector('i').className =
             'fas fa-exclamation-triangle text-yellow-500';
         } else {
           content.className =
-            'bg-gray-800 border-l-4 border-neon-blue text-white px-6 py-4 rounded shadow-neon-blue flex items-center gap-3';
+            'bg-gray-800 border-l-4 border-neon-blue text-white px-4 py-3 rounded shadow-neon-blue flex items-center gap-3 text-sm';
           content.querySelector('i').className =
             'fas fa-check-circle text-neon-blue';
         }
@@ -1407,13 +1720,13 @@
         if (resetToken) {
           document.body.innerHTML = `
             <div class="flex h-screen items-center justify-center bg-neon-bg text-white p-4">
-              <div class="p-8 bg-gray-900 border border-gray-700 rounded-2xl shadow-neon-blue max-w-md w-full">
-                <h2 class="text-2xl mb-4 font-bold text-neon-blue">Set New Password</h2>
-                <p class="text-sm text-gray-400 mb-4">You arrived here via a reset link.</p>
-                <input type="password" id="new-pwd" class="neon-input w-full p-3 mb-2 rounded-lg" placeholder="New Password">
-                <input type="password" id="confirm-pwd" class="neon-input w-full p-3 mb-4 rounded-lg" placeholder="Confirm Password">
-                <button onclick="handleReset('${resetToken}')" class="w-full bg-gradient-to-r from-neon-blue to-cyan-500 text-black p-3 rounded-lg font-bold hover:shadow-neon-blue transition-all">Reset Password</button>
-                <p class="text-center text-gray-400 text-sm mt-4">
+              <div class="p-6 sm:p-8 bg-gray-900 border border-gray-700 rounded-2xl shadow-neon-blue max-w-md w-full mx-2">
+                <h2 class="text-xl sm:text-2xl mb-4 font-bold text-neon-blue">Set New Password</h2>
+                <p class="text-xs sm:text-sm text-gray-400 mb-4">You arrived here via a reset link.</p>
+                <input type="password" id="new-pwd" class="neon-input w-full p-3 mb-2 rounded-lg text-sm" placeholder="New Password">
+                <input type="password" id="confirm-pwd" class="neon-input w-full p-3 mb-4 rounded-lg text-sm" placeholder="Confirm Password">
+                <button onclick="handleReset('${resetToken}')" class="w-full bg-gradient-to-r from-neon-blue to-cyan-500 text-black p-3 rounded-lg font-bold hover:shadow-neon-blue transition-all text-sm sm:text-base">Reset Password</button>
+                <p class="text-center text-gray-400 text-xs sm:text-sm mt-4">
                   <a href="${window.location.pathname}" class="text-gray-300 hover:text-neon-blue transition-colors">Go to Login</a>
                 </p>
               </div>
@@ -1531,7 +1844,7 @@
           } catch (err) {}
         });
 
-      // === NEW: Forgot Password form handler ===
+      // Forgot Password form handler
       document
         .getElementById('forgot-password-form')
         .addEventListener('submit', async (e) => {
@@ -1563,7 +1876,10 @@
               );
             }
             showSection('login-form'); // Go back to login after sending link
-          } catch (err) {}
+          } catch (err) {
+            sendLinkBtn.disabled = false;
+            sendLinkBtn.innerHTML = 'SEND LINK';
+          }
         });
 
       document
@@ -1598,8 +1914,6 @@
             );
           }
         });
-
-      // === END NEW ===
 
       // ================= DASHBOARD FUNCTIONS =================
       const toggleMobileSidebar = () => {
@@ -1718,13 +2032,21 @@
         // Update sidebar storage
         document.getElementById(
           'sidebar-storage-used',
-        ).textContent = `${usedMB} MB / ${formatBytes(STORAGE_LIMIT, 0)}`;
+        ).textContent = `${usedMB} MB / 100 MB`;
         document.getElementById(
           'sidebar-storage-fill',
         ).style.width = `${displayPercentage}%`;
         document.getElementById(
           'sidebar-storage-free',
         ).textContent = `${freeMB} MB`;
+
+        // Update mobile sidebar storage
+        document.getElementById(
+          'mobile-sidebar-storage-used',
+        ).textContent = `${usedMB} MB / 100 MB`;
+        document.getElementById(
+          'mobile-sidebar-storage-fill',
+        ).style.width = `${displayPercentage}%`;
 
         // Update settings storage
         document.getElementById(
@@ -1760,16 +2082,15 @@
         if (currentViewMode === 'list') {
           container.className = 'space-y-4';
         } else {
-          container.className =
-            'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start';
+          container.className = 'responsive-grid gap-4 sm:gap-6 content-start';
         }
 
         if (files.length === 0) {
           container.innerHTML = `
-            <div class="col-span-full flex flex-col items-center justify-center text-gray-500 mt-10 py-12">
-              <i class="fas fa-box-open text-5xl mb-4 opacity-50"></i>
-              <p class="text-lg mb-2">No prescriptions found</p>
-              <p class="text-sm text-gray-600">Click 'Upload' to add your first prescription</p>
+            <div class="col-span-full flex flex-col items-center justify-center text-gray-500 mt-6 sm:mt-10 py-8 sm:py-12">
+              <i class="fas fa-box-open text-4xl sm:text-5xl mb-3 sm:mb-4 opacity-50"></i>
+              <p class="text-base sm:text-lg mb-1 sm:mb-2">No prescriptions found</p>
+              <p class="text-xs sm:text-sm text-gray-600">Click 'Upload' to add your first prescription</p>
             </div>
           `;
           return;
@@ -1790,27 +2111,29 @@
           if (currentViewMode === 'list') {
             const card = document.createElement('div');
             card.className =
-              'bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-neon-blue transition-all flex items-center gap-4';
+              'bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4 hover:border-neon-blue transition-all flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4';
             card.innerHTML = `
-              <div class="bg-gray-800 p-3 rounded-lg text-neon-blue">
-                <i class="fas ${icon} text-xl"></i>
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="bg-gray-800 p-2 sm:p-3 rounded-lg text-neon-blue">
+                  <i class="fas ${icon} text-lg sm:text-xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-white truncate text-sm sm:text-base">${file.doctor}</h3>
+                  <p class="text-xs text-gray-400">${file.date} • ${fileSize}</p>
+                </div>
               </div>
-              <div class="flex-1">
-                <h3 class="font-semibold text-white truncate">${file.doctor}</h3>
-                <p class="text-xs text-gray-400">${file.date} • ${fileSize}</p>
-              </div>
-              <div class="flex gap-2">
-                <button onclick="previewFile('${file.id}')" class="p-2 text-gray-400 hover:text-neon-blue hover:bg-gray-800 rounded-lg tooltip" data-tooltip="Preview">
-                  <i class="fas fa-eye"></i>
+              <div class="flex gap-1 sm:gap-2 w-full sm:w-auto justify-end">
+                <button onclick="previewFile('${file.id}')" class="p-1.5 sm:p-2 text-gray-400 hover:text-neon-blue hover:bg-gray-800 rounded-lg" aria-label="Preview">
+                  <i class="fas fa-eye text-sm sm:text-base"></i>
                 </button>
-                <a href="${API_URL}/file/${file.id}" download="${file.filename}" target="_blank" class="p-2 text-gray-400 hover:text-neon-green hover:bg-gray-800 rounded-lg tooltip" data-tooltip="Download">
-                  <i class="fas fa-download"></i>
+                <a href="${API_URL}/file/${file.id}" download="${file.filename}" target="_blank" class="p-1.5 sm:p-2 text-gray-400 hover:text-neon-green hover:bg-gray-800 rounded-lg" aria-label="Download">
+                  <i class="fas fa-download text-sm sm:text-base"></i>
                 </a>
-                <button onclick="openEditModal('${file.id}', '${file.doctor}', '${file.date}')" class="p-2 text-gray-400 hover:text-neon-purple hover:bg-gray-800 rounded-lg tooltip" data-tooltip="Edit">
-                  <i class="fas fa-edit"></i>
+                <button onclick="openEditModal('${file.id}', '${file.doctor}', '${file.date}')" class="p-1.5 sm:p-2 text-gray-400 hover:text-neon-purple hover:bg-gray-800 rounded-lg" aria-label="Edit">
+                  <i class="fas fa-edit text-sm sm:text-base"></i>
                 </button>
-                <button onclick="deleteFile('${file.id}')" class="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-800 rounded-lg tooltip" data-tooltip="Delete">
-                  <i class="fas fa-trash"></i>
+                <button onclick="deleteFile('${file.id}')" class="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-gray-800 rounded-lg" aria-label="Delete">
+                  <i class="fas fa-trash text-sm sm:text-base"></i>
                 </button>
               </div>
             `;
@@ -1818,27 +2141,27 @@
           } else {
             const card = document.createElement('div');
             card.className =
-              'bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-neon-blue hover:shadow-neon-blue transition-all duration-300 group relative flex flex-col h-64';
+              'bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-5 hover:border-neon-blue hover:shadow-neon-blue transition-all duration-300 group relative flex flex-col h-52 sm:h-64';
             card.innerHTML = `
               <div class="flex items-start justify-between mb-2">
                 <div class="bg-gray-800 p-2 rounded-lg text-neon-blue group-hover:bg-neon-blue group-hover:text-black transition-colors">
-                  <i class="fas ${icon} text-xl"></i>
+                  <i class="fas ${icon} text-lg sm:text-xl"></i>
                 </div>
-                <div class="flex gap-2">
-                  <button onclick="openEditModal('${file.id}', '${file.doctor}', '${file.date}')" class="text-gray-500 hover:text-neon-purple p-1 tooltip" data-tooltip="Edit"><i class="fas fa-edit"></i></button>
-                  <button onclick="deleteFile('${file.id}')" class="text-gray-500 hover:text-red-500 p-1 tooltip" data-tooltip="Delete"><i class="fas fa-trash"></i></button>
+                <div class="flex gap-1">
+                  <button onclick="openEditModal('${file.id}', '${file.doctor}', '${file.date}')" class="text-gray-500 hover:text-neon-purple p-1" aria-label="Edit"><i class="fas fa-edit text-sm"></i></button>
+                  <button onclick="deleteFile('${file.id}')" class="text-gray-500 hover:text-red-500 p-1" aria-label="Delete"><i class="fas fa-trash text-sm"></i></button>
                 </div>
               </div>
-              <h3 class="text-white font-semibold truncate mb-1" title="${file.filename}">${file.doctor}</h3>
+              <h3 class="text-white font-semibold truncate mb-1 text-sm sm:text-base" title="${file.filename}">${file.doctor}</h3>
               <p class="text-xs text-gray-400 mb-2">${file.date}</p>
               <p class="text-xs text-gray-500 mb-4">${fileSize}</p>
 
               <div class="mt-auto flex gap-2">
-                <button onclick="previewFile('${file.id}')" class="flex-1 text-center bg-gray-800 hover:bg-neon-blue text-neon-blue hover:text-black py-2 rounded text-xs font-bold transition-all border border-neon-blue hover:border-transparent">
-                  <i class="fas fa-eye"></i> PREVIEW
+                <button onclick="previewFile('${file.id}')" class="flex-1 text-center bg-gray-800 hover:bg-neon-blue text-neon-blue hover:text-black py-1.5 sm:py-2 rounded text-xs font-bold transition-all border border-neon-blue hover:border-transparent">
+                  <i class="fas fa-eye mr-1"></i> PREVIEW
                 </button>
-                <a href="${API_URL}/file/${file.id}" download="${file.filename}" target="_blank" class="flex-1 text-center bg-gray-800 hover:bg-neon-green text-neon-green hover:text-black py-2 rounded text-xs font-bold transition-all border border-neon-green hover:border-transparent">
-                  <i class="fas fa-download"></i> DOWNLOAD
+                <a href="${API_URL}/file/${file.id}" download="${file.filename}" target="_blank" class="flex-1 text-center bg-gray-800 hover:bg-neon-green text-neon-green hover:text-black py-1.5 sm:py-2 rounded text-xs font-bold transition-all border border-neon-green hover:border-transparent">
+                  <i class="fas fa-download mr-1"></i> DOWNLOAD
                 </a>
               </div>
             `;
@@ -1909,9 +2232,9 @@
 
         const previewContent = document.getElementById('preview-content');
         previewContent.innerHTML = `
-          <div class="flex items-center justify-center h-64">
-            <i class="fas fa-spinner fa-spin text-4xl text-neon-blue"></i>
-            <span class="ml-4">Loading preview...</span>
+          <div class="flex items-center justify-center h-48 sm:h-64">
+            <i class="fas fa-spinner fa-spin text-3xl sm:text-4xl text-neon-blue"></i>
+            <span class="ml-3 sm:ml-4 text-sm sm:text-base">Loading preview...</span>
           </div>
         `;
 
@@ -1939,11 +2262,11 @@
               .classList.add('hidden');
           } else {
             previewContent.innerHTML = `
-              <div class="text-center py-12">
-                <i class="fas fa-file text-5xl text-gray-600 mb-4"></i>
-                <p class="text-gray-400">Preview not available for this file type</p>
-                <a href="${url}" download="${file.filename}" target="_blank" class="inline-block mt-4 px-4 py-2 bg-neon-blue text-black rounded-lg font-semibold">
-                  <i class="fas fa-download mr-2"></i>Download File
+              <div class="text-center py-8 sm:py-12">
+                <i class="fas fa-file text-4xl sm:text-5xl text-gray-600 mb-3 sm:mb-4"></i>
+                <p class="text-gray-400 text-sm sm:text-base">Preview not available for this file type</p>
+                <a href="${url}" download="${file.filename}" target="_blank" class="inline-block mt-3 sm:mt-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-neon-blue text-black rounded-lg font-semibold text-xs sm:text-sm">
+                  <i class="fas fa-download mr-1 sm:mr-2"></i>Download File
                 </a>
               </div>
             `;
@@ -1954,9 +2277,9 @@
         } catch (error) {
           console.error('Failed to load preview:', error);
           previewContent.innerHTML = `
-            <div class="text-center py-12">
-              <i class="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
-              <p class="text-gray-400">Failed to load preview. Please check the file or server.</p>
+            <div class="text-center py-8 sm:py-12">
+              <i class="fas fa-exclamation-triangle text-4xl sm:text-5xl text-red-500 mb-3 sm:mb-4"></i>
+              <p class="text-gray-400 text-sm sm:text-base">Failed to load preview. Please check the file or server.</p>
             </div>
           `;
           document
@@ -1969,7 +2292,7 @@
         container.innerHTML = `
           <div class="flex justify-center">
             <img id="preview-image" src="${url}" alt="Preview"
-                 class="max-w-full max-h-[60vh] object-contain transition-transform duration-200"
+                 class="max-w-full max-h-[50vh] sm:max-h-[60vh] object-contain transition-transform duration-200"
                  style="transform: rotate(${currentRotation}deg) scale(${currentZoom})">
           </div>
         `;
@@ -2012,9 +2335,9 @@
         } catch (error) {
           console.error('Error rendering PDF:', error);
           container.innerHTML = `
-            <div class="text-center py-12">
-              <i class="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
-              <p class="text-gray-400">Failed to load PDF</p>
+            <div class="text-center py-8 sm:py-12">
+              <i class="fas fa-exclamation-triangle text-4xl sm:text-5xl text-red-500 mb-3 sm:mb-4"></i>
+              <p class="text-gray-400 text-sm sm:text-base">Failed to load PDF</p>
             </div>
           `;
         }
@@ -2036,35 +2359,30 @@
       };
 
       const zoomPreviewIn = async () => {
-        // Made async
         currentZoom = Math.min(currentZoom + 0.25, 3);
-        await updatePreviewTransform(); // Await
+        await updatePreviewTransform();
       };
 
       const zoomPreviewOut = async () => {
-        // Made async
         currentZoom = Math.max(currentZoom - 0.25, 0.5);
-        await updatePreviewTransform(); // Await
+        await updatePreviewTransform();
       };
 
       const updatePreviewTransform = async () => {
-        // Made async
         const image = document.getElementById('preview-image');
         if (image) {
           image.style.transform = `rotate(${currentRotation}deg) scale(${currentZoom})`;
         }
         if (pdfDoc && currentPreviewFile) {
-          // Added currentPreviewFile check
           const blob = await fetch(
             `${API_URL}/file/${currentPreviewFile.id}`,
           ).then((r) => r.blob());
           const url = URL.createObjectURL(blob);
-          await renderPDF(url, document.getElementById('preview-content')); // Await renderPDF
+          await renderPDF(url, document.getElementById('preview-content'));
         }
       };
 
       const prevPage = async () => {
-        // Made async
         if (pdfDoc && currentPage > 1) {
           currentPage--;
           const blob = await fetch(
@@ -2076,7 +2394,6 @@
       };
 
       const nextPage = async () => {
-        // Made async
         if (pdfDoc && currentPage < pdfDoc.numPages) {
           currentPage++;
           const blob = await fetch(
@@ -2093,9 +2410,9 @@
 
         if (allFiles.length === 0) {
           container.innerHTML = `
-            <div class="col-span-full flex flex-col items-center justify-center text-gray-500 mt-10 py-12">
-              <i class="fas fa-user-md-slash text-5xl mb-4 opacity-50"></i>
-              <p>No doctors found yet. Upload a prescription to see them here!</p>
+            <div class="col-span-full flex flex-col items-center justify-center text-gray-500 mt-6 sm:mt-10 py-8 sm:py-12">
+              <i class="fas fa-user-md-slash text-4xl sm:text-5xl mb-3 sm:mb-4 opacity-50"></i>
+              <p class="text-sm sm:text-base">No doctors found yet. Upload a prescription to see them here!</p>
             </div>
           `;
           return;
@@ -2114,20 +2431,20 @@
         sortedDoctors.forEach(([doctor, count]) => {
           const card = document.createElement('div');
           card.className =
-            'bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-neon-green hover:shadow-neon-green transition-all duration-300';
+            'bg-gray-900 border border-gray-800 rounded-xl p-4 sm:p-5 hover:border-neon-green hover:shadow-neon-green transition-all duration-300';
           card.innerHTML = `
-            <div class="flex items-center gap-4">
-              <div class="p-4 bg-neon-green/20 rounded-full text-neon-green text-2xl">
+            <div class="flex items-center gap-3 sm:gap-4">
+              <div class="p-3 sm:p-4 bg-neon-green/20 rounded-full text-neon-green text-xl sm:text-2xl">
                 <i class="fas fa-user-md"></i>
               </div>
-              <div class="flex-1">
-                <h4 class="text-white font-semibold text-lg">${doctor}</h4>
-                <p class="text-gray-400 text-sm">${count} Prescription${
+              <div class="flex-1 min-w-0">
+                <h4 class="text-white font-semibold text-base sm:text-lg truncate">${doctor}</h4>
+                <p class="text-gray-400 text-xs sm:text-sm">${count} Prescription${
             count === 1 ? '' : 's'
           }</p>
               </div>
-              <button onclick="filterByDoctor('${doctor}')" class="text-gray-400 hover:text-neon-blue tooltip" data-tooltip="View prescriptions by ${doctor}">
-                <i class="fas fa-filter"></i>
+              <button onclick="filterByDoctor('${doctor}')" class="text-gray-400 hover:text-neon-blue p-1" aria-label="Filter by ${doctor}">
+                <i class="fas fa-filter text-sm sm:text-base"></i>
               </button>
             </div>
           `;
@@ -2137,7 +2454,6 @@
 
       const filterByDoctor = (doctorName) => {
         document.getElementById('search-input').value = doctorName;
-        // Trigger search functionality which calls renderFiles with filtered data
         document
           .getElementById('search-input')
           .dispatchEvent(new Event('input'));
@@ -2184,24 +2500,24 @@
 
         storageChart.innerHTML = `
           <div class="w-full h-full flex flex-col justify-center">
-            <div class="flex items-center justify-center gap-4 mb-4">
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-neon-blue rounded-full"></div>
+            <div class="flex items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4 flex-wrap">
+              <div class="flex items-center gap-1 sm:gap-2">
+                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-neon-blue rounded-full"></div>
                 <span class="text-xs">Images: ${formatBytes(imageBytes)}</span>
               </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-neon-purple rounded-full"></div>
+              <div class="flex items-center gap-1 sm:gap-2">
+                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-neon-purple rounded-full"></div>
                 <span class="text-xs">PDFs: ${formatBytes(pdfBytes)}</span>
               </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-gray-600 rounded-full"></div>
+              <div class="flex items-center gap-1 sm:gap-2">
+                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-gray-600 rounded-full"></div>
                 <span class="text-xs">Other: ${formatBytes(otherBytes)}</span>
               </div>
             </div>
-            <div class="flex h-32 items-end justify-center gap-1">
-              <div class="w-16 bg-neon-blue rounded-t" style="height: ${imageHeight}%"></div>
-              <div class="w-16 bg-neon-purple rounded-t" style="height: ${pdfHeight}%"></div>
-              <div class="w-16 bg-gray-600 rounded-t" style="height: ${otherHeight}%"></div>
+            <div class="flex h-32 sm:h-40 items-end justify-center gap-1">
+              <div class="w-10 sm:w-16 bg-neon-blue rounded-t" style="height: ${imageHeight}%"></div>
+              <div class="w-10 sm:w-16 bg-neon-purple rounded-t" style="height: ${pdfHeight}%"></div>
+              <div class="w-10 sm:w-16 bg-gray-600 rounded-t" style="height: ${otherHeight}%"></div>
             </div>
           </div>
         `;
@@ -2221,15 +2537,15 @@
         const maxCount = Math.max(...dailyCounts, 1); // Ensure maxCount is at least 1 to avoid division by zero
 
         activityChart.innerHTML = `
-          <div class="w-full h-full flex items-end justify-between p-2">
+          <div class="w-full h-full flex items-end justify-between p-1 sm:p-2">
               ${last7Days
                 .map(
                   (date, i) => `
                 <div class="flex flex-col items-center flex-1">
-                  <div class="w-8 bg-neon-pink rounded-t mb-1"
+                  <div class="w-6 sm:w-8 bg-neon-pink rounded-t mb-1"
                        style="height: ${
                          (dailyCounts[i] / maxCount) * 80 + 20
-                       }%"></div> <!-- Base height + dynamic part -->
+                       }%"></div>
                   <span class="text-xs text-gray-500">${new Date(
                     date,
                   ).getDate()}</span>
@@ -2252,7 +2568,6 @@
           renderFiles(); // Render files with current sort/view
           updateStorageDisplay();
           updateDashboardCounts();
-          // renderDoctorsList(); // Only call when doctors section is active
         } catch (err) {
           console.error('Load failed', err);
         }
@@ -2458,6 +2773,25 @@
 
       // Initialize
       checkAuth();
+
+      // Add mobile-specific event listeners
+      document.addEventListener('touchstart', function () {}, {
+        passive: true,
+      });
+
+      // Prevent zoom on double tap
+      let lastTouchEnd = 0;
+      document.addEventListener(
+        'touchend',
+        function (event) {
+          const now = new Date().getTime();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        },
+        false,
+      );
     </script>
   </body>
 </html>
