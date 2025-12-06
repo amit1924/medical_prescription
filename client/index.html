@@ -3,1886 +3,2434 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MediVault - Secure Prescription Management</title>
+    <title>NeonRx - Prescription Manager</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <!-- PDF.js for PDF preview -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              neon: {
+                blue: '#06b6d4',
+                purple: '#a855f7',
+                pink: '#ec4899',
+                green: '#10b981',
+                orange: '#f97316',
+                yellow: '#eab308',
+                bg: '#080c16',
+                card: '#111827',
+                text: '#e2e8f0',
+              },
+            },
+            boxShadow: {
+              'neon-blue': '0 0 10px #06b6d4, 0 0 25px rgba(6, 182, 212, 0.5)',
+              'neon-purple':
+                '0 0 10px #a855f7, 0 0 25px rgba(168, 85, 247, 0.5)',
+              'neon-pink': '0 0 10px #ec4899, 0 0 25px rgba(236, 72, 153, 0.5)',
+              'neon-green':
+                '0 0 10px #10b981, 0 0 25px rgba(16, 185, 129, 0.5)',
+            },
+          },
+        },
+      };
+    </script>
+
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-
-      :root {
-        --primary: #6366f1;
-        --primary-dark: #4f46e5;
-        --secondary: #10b981;
-        --accent: #f59e0b;
-        --info: #3b82f6;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --dark: #111827;
-        --darker: #0f172a;
-        --light: #f8fafc;
-        --gradient-start: #8b5cf6;
-        --gradient-end: #3b82f6;
-      }
-
       body {
-        font-family: 'Poppins', sans-serif;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        min-height: 100vh;
-        color: var(--light);
-        overflow-x: hidden;
+        background-color: #080c16;
+        color: #e2e8f0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
 
-      .glass {
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .card-hover {
-        transition: all 0.3s ease;
-      }
-
-      .card-hover:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
-      }
-
-      .fade-in {
-        animation: fadeIn 0.5s ease-in-out;
-      }
-
-      .slide-up {
-        animation: slideUp 0.5s ease-out;
-      }
-
-      .pulse-glow {
-        animation: pulseGlow 2s infinite;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      @keyframes slideUp {
-        from {
-          transform: translateY(20px);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-      @keyframes pulseGlow {
-        0% {
-          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
-        }
-        70% {
-          box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
-        }
-      }
-
-      .gradient-text {
-        background: linear-gradient(
-          135deg,
-          var(--gradient-start) 0%,
-          var(--gradient-end) 100%
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-
-      .gradient-bg {
-        background: linear-gradient(
-          135deg,
-          var(--gradient-start) 0%,
-          var(--gradient-end) 100%
-        );
-      }
-
-      .file-drop-zone {
-        border: 2px dashed #64748b;
-        transition: all 0.3s ease;
-      }
-
-      .file-drop-zone.drag-over {
-        border-color: var(--primary);
-        background-color: rgba(99, 102, 241, 0.05);
-      }
-
-      .modal-overlay {
-        background-color: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(4px);
-      }
-
-      .search-input:focus {
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
-      }
-
-      .filter-option {
-        transition: all 0.2s ease;
-      }
-
-      .filter-option:hover {
-        background-color: rgba(99, 102, 241, 0.1);
-      }
-
-      .prescription-card {
-        background: linear-gradient(
-          145deg,
-          rgba(30, 41, 59, 0.8),
-          rgba(15, 23, 42, 0.9)
-        );
-        border: 1px solid rgba(255, 255, 255, 0.05);
-      }
-
-      /* Toast notifications */
-      .toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .toast {
-        padding: 16px 20px;
-        border-radius: 12px;
-        color: white;
-        font-weight: 500;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        display: flex;
-        align-items: center;
-        max-width: 350px;
-        animation: slideInRight 0.3s ease-out;
-        transition: transform 0.3s ease, opacity 0.3s ease;
-      }
-
-      .toast.success {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-      }
-
-      .toast.error {
-        background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
-      }
-
-      .toast.warning {
-        background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
-      }
-
-      .toast.info {
-        background: linear-gradient(135deg, var(--info) 0%, #1d4ed8 100%);
-      }
-
-      .toast i {
-        margin-right: 10px;
-        font-size: 1.2rem;
-      }
-
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-
-      /* Mobile responsive adjustments */
-      @media (max-width: 768px) {
-        .mobile-stack {
-          flex-direction: column;
-        }
-
-        .mobile-full {
-          width: 100%;
-        }
-
-        .mobile-padding {
-          padding-left: 1rem;
-          padding-right: 1rem;
-        }
-
-        .mobile-text-center {
-          text-align: center;
-        }
-
-        .toast-container {
-          top: 10px;
-          right: 10px;
-          left: 10px;
-        }
-
-        .toast {
-          max-width: 100%;
-        }
-      }
-
-      /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
       }
-
       ::-webkit-scrollbar-track {
-        background: rgba(30, 41, 59, 0.5);
-        border-radius: 10px;
+        background: #111827;
       }
-
       ::-webkit-scrollbar-thumb {
-        background: var(--primary);
-        border-radius: 10px;
+        background: #06b6d4;
+        border-radius: 4px;
       }
 
-      ::-webkit-scrollbar-thumb:hover {
-        background: var(--primary-dark);
+      .hidden-section {
+        display: none !important;
+      }
+
+      .neon-input {
+        background: rgba(17, 24, 39, 0.7);
+        border: 1px solid #374151;
+        color: white;
+        transition: all 0.3s ease;
+      }
+      .neon-input:focus {
+        outline: none;
+        border-color: #06b6d4;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+      }
+
+      #mobile-sidebar {
+        transition: transform 0.3s ease-in-out;
+        transform: translateX(-100%);
+      }
+      #mobile-sidebar.open {
+        transform: translateX(0);
+      }
+
+      .pdf-canvas {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .storage-bar {
+        height: 6px;
+        background: #374151;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .storage-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s ease;
+      }
+
+      .modal-overlay {
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+      }
+
+      .preview-container {
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      .rotate-0 {
+        transform: rotate(0deg);
+      }
+      .rotate-90 {
+        transform: rotate(90deg);
+      }
+      .rotate-180 {
+        transform: rotate(180deg);
+      }
+      .rotate-270 {
+        transform: rotate(270deg);
+      }
+
+      .tooltip {
+        position: relative;
+      }
+
+      .tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1f2937;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 100;
+        border: 1px solid #374151;
       }
     </style>
   </head>
-  <body class="min-h-screen">
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Loading Overlay -->
+  <body class="h-screen overflow-hidden flex flex-col">
+    <!-- Toast Notification -->
     <div
-      id="loadingOverlay"
-      class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 hidden"
+      id="toast"
+      class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300"
     >
-      <div class="text-center">
-        <div
-          class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"
-        ></div>
-        <p class="text-white text-lg font-medium">Processing...</p>
+      <div
+        id="toast-content"
+        class="bg-gray-800 border-l-4 border-neon-blue text-white px-6 py-4 rounded shadow-neon-blue flex items-center gap-3"
+      >
+        <i class="fas fa-info-circle"></i>
+        <span id="toast-message">Notification</span>
       </div>
     </div>
 
-    <!-- Preview Modal -->
-    <div id="previewModal" class="fixed inset-0 z-50 hidden">
-      <div class="modal-overlay absolute inset-0"></div>
-      <div class="flex items-center justify-center min-h-screen p-4">
-        <div
-          class="glass rounded-2xl shadow-2xl w-full max-w-4xl relative slide-up max-h-[90vh] overflow-hidden"
-        >
-          <div
-            class="flex justify-between items-center p-6 border-b border-gray-700"
+    <!-- Auth View -->
+    <div
+      id="auth-view"
+      class="flex-1 flex items-center justify-center p-4 relative"
+    >
+      <div
+        class="absolute top-20 left-20 w-32 h-32 bg-neon-blue rounded-full filter blur-[120px] opacity-20"
+      ></div>
+      <div
+        class="absolute bottom-20 right-20 w-32 h-32 bg-neon-purple rounded-full filter blur-[120px] opacity-20"
+      ></div>
+
+      <div
+        class="w-full max-w-md bg-gray-900/80 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-neon-blue p-8 relative z-10"
+      >
+        <div class="text-center mb-8">
+          <i
+            class="fas fa-prescription-bottle-alt text-5xl text-neon-blue mb-4 drop-shadow-[0_0_15px_rgba(6,182,212,0.9)]"
+          ></i>
+          <h1
+            class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple"
           >
-            <h3 class="text-xl font-bold text-white" id="previewTitle">
-              Preview
-            </h3>
-            <button
-              onclick="closePreview()"
-              class="text-gray-400 hover:text-white transition-colors duration-300"
+            NeonRx
+          </h1>
+          <p class="text-gray-400 text-sm mt-2">Medical Document Management</p>
+        </div>
+
+        <form id="login-form" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Email</label
             >
-              <i class="fas fa-times text-2xl"></i>
-            </button>
-          </div>
-          <div class="p-6 overflow-auto max-h-[70vh]">
-            <div id="previewContent" class="flex justify-center">
-              <!-- Preview content will be inserted here -->
+            <div class="relative">
+              <i
+                class="fas fa-envelope absolute left-3 top-3.5 text-gray-500"
+              ></i>
+              <input
+                type="email"
+                id="login-email"
+                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                placeholder="doctor@example.com"
+                required
+              />
             </div>
           </div>
-          <div class="flex justify-end p-6 border-t border-gray-700">
-            <button
-              id="downloadPreviewBtn"
-              class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 mr-2"
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Password</label
             >
-              <i class="fas fa-download mr-2"></i> Download
+            <div class="relative">
+              <i class="fas fa-lock absolute left-3 top-3.5 text-gray-500"></i>
+              <input
+                type="password"
+                id="login-password"
+                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+          </div>
+          <div class="flex justify-between text-sm">
+            <a
+              href="#"
+              onclick="showSection('forgot-password-form')"
+              class="text-neon-blue hover:text-neon-purple transition-colors font-medium"
+              >Forgot Password?</a
+            >
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-neon-blue to-cyan-500 hover:from-neon-blue hover:to-neon-blue text-black font-bold py-3 rounded-lg shadow-neon-blue transition-all transform hover:scale-[1.01]"
+          >
+            LOGIN
+          </button>
+          <p class="text-center text-gray-400 text-sm">
+            Don't have an account?
+            <a
+              href="#"
+              onclick="toggleAuthMode('signup')"
+              class="text-neon-purple hover:underline"
+              >Sign Up</a
+            >
+          </p>
+        </form>
+
+        <form id="signup-form" class="space-y-5 hidden-section">
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Email</label
+            >
+            <div class="relative">
+              <i
+                class="fas fa-envelope absolute left-3 top-3.5 text-gray-500"
+              ></i>
+              <input
+                type="email"
+                id="signup-email"
+                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                placeholder="newuser@example.com"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Password</label
+            >
+            <div class="relative">
+              <i class="fas fa-lock absolute left-3 top-3.5 text-gray-500"></i>
+              <input
+                type="password"
+                id="signup-password"
+                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-neon-purple to-pink-600 hover:from-neon-purple hover:to-neon-purple text-white font-bold py-3 rounded-lg shadow-neon-purple transition-all transform hover:scale-[1.01]"
+          >
+            CREATE ACCOUNT
+          </button>
+          <p class="text-center text-gray-400 text-sm">
+            Already have an account?
+            <a
+              href="#"
+              onclick="toggleAuthMode('login')"
+              class="text-neon-blue hover:underline"
+              >Login</a
+            >
+          </p>
+        </form>
+
+        <form id="forgot-password-form" class="space-y-5 hidden-section">
+          <div class="text-center mb-4">
+            <h3 class="text-lg font-bold text-white">Reset Password</h3>
+            <p class="text-xs text-gray-400">
+              Enter your email to receive a reset link.
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Email</label
+            >
+            <div class="relative">
+              <i
+                class="fas fa-envelope absolute left-3 top-3.5 text-gray-500"
+              ></i>
+              <input
+                type="email"
+                id="forgot-email"
+                class="neon-input w-full pl-10 pr-4 py-3 rounded-lg"
+                required
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            id="send-reset-link-btn"
+            class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition-all border border-gray-600 hover:border-white"
+          >
+            SEND LINK
+          </button>
+          <!-- New element to display reset link for dev purposes -->
+          <div
+            id="reset-link-display"
+            class="hidden text-center text-sm bg-gray-800 p-3 rounded-lg border border-gray-700 break-words"
+          >
+            <p class="text-neon-blue font-semibold mb-2">
+              Development Reset Link (Copy/Paste):
+            </p>
+            <textarea
+              id="reset-link-textarea"
+              readonly
+              class="neon-input w-full p-2 text-xs h-20 resize-none"
+            ></textarea>
+            <p class="text-gray-500 mt-2">
+              In a real app, this link would be sent to your email.
+            </p>
+          </div>
+          <p class="text-center text-gray-400 text-sm">
+            <a
+              href="#"
+              onclick="showSection('login-form')"
+              class="text-gray-300 hover:text-neon-blue transition-colors"
+              ><i class="fas fa-arrow-left"></i> Back to Login</a
+            >
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="hidden-section flex-1 flex h-screen">
+      <aside
+        class="w-64 bg-gray-900 border-r border-gray-800 flex-col hidden md:flex relative z-20"
+      >
+        <div class="p-6 flex items-center gap-3 border-b border-gray-800">
+          <i
+            class="fas fa-prescription-bottle-alt text-2xl text-neon-blue drop-shadow-[0_0_5px_#06b6d4]"
+          ></i>
+          <span class="font-bold text-xl tracking-wider">NeonRx</span>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2">
+          <a
+            href="#"
+            onclick="switchDashboardSection('overview')"
+            id="nav-overview"
+            class="nav-link flex items-center gap-3 p-3 bg-gray-800/50 text-neon-blue border-r-2 border-neon-blue rounded-l-md transition-all"
+          >
+            <i class="fas fa-chart-line w-6 text-center"></i>
+            <span>Overview</span>
+          </a>
+          <a
+            href="#"
+            onclick="switchDashboardSection('files')"
+            id="nav-files"
+            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-blue rounded-md transition-all"
+          >
+            <i class="fas fa-folder-open w-6 text-center"></i>
+            <span>All Files</span>
+          </a>
+          <a
+            href="#"
+            onclick="switchDashboardSection('doctors')"
+            id="nav-doctors"
+            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-green rounded-md transition-all"
+          >
+            <i class="fas fa-user-md w-6 text-center"></i>
+            <span>Doctors</span>
+          </a>
+          <a
+            href="#"
+            onclick="switchDashboardSection('analytics')"
+            id="nav-analytics"
+            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-pink rounded-md transition-all"
+          >
+            <i class="fas fa-chart-bar w-6 text-center"></i>
+            <span>Analytics</span>
+          </a>
+          <a
+            href="#"
+            onclick="switchDashboardSection('settings')"
+            id="nav-settings"
+            class="nav-link flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-purple rounded-md transition-all"
+          >
+            <i class="fas fa-cog w-6 text-center"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <!-- Storage Info in Sidebar -->
+        <div class="p-4 border-t border-gray-800">
+          <div class="mb-4">
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <span>Storage</span>
+              <span id="sidebar-storage-used">0 MB / 100 MB</span>
+            </div>
+            <div class="storage-bar mb-2">
+              <div
+                id="sidebar-storage-fill"
+                class="storage-fill bg-gradient-to-r from-neon-blue to-cyan-500"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p class="text-xs text-gray-500">
+              Free: <span id="sidebar-storage-free">100 MB</span>
+            </p>
+          </div>
+
+          <div class="bg-gray-800 rounded-lg p-3 mb-4">
+            <p class="text-xs text-gray-400">Logged in as</p>
+            <p
+              id="user-email-display"
+              class="text-sm font-semibold truncate text-neon-blue"
+            >
+              user@example.com
+            </p>
+          </div>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-2 p-2 text-gray-400 hover:text-red-400 transition-colors bg-gray-800/50 rounded-lg hover:bg-gray-800"
+          >
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </aside>
+
+      <!-- Mobile Sidebar -->
+      <aside
+        id="mobile-sidebar"
+        class="fixed top-0 left-0 h-full w-64 bg-gray-900 border-r border-gray-800 flex flex-col z-40 md:hidden"
+      >
+        <div class="p-6 flex items-center gap-3 border-b border-gray-800">
+          <i
+            class="fas fa-prescription-bottle-alt text-2xl text-neon-blue drop-shadow-[0_0_5px_#06b6d4]"
+          ></i>
+          <span class="font-bold text-xl tracking-wider">NeonRx</span>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2">
+          <a
+            href="#"
+            onclick="switchDashboardSection('overview', true)"
+            id="mobile-nav-overview"
+            class="nav-link-mobile flex items-center gap-3 p-3 bg-gray-800/50 text-neon-blue border-r-2 border-neon-blue rounded-l-md transition-all"
+          >
+            <i class="fas fa-chart-line w-6 text-center"></i>
+            <span>Overview</span>
+          </a>
+          <a
+            href="#"
+            onclick="switchDashboardSection('files', true)"
+            id="mobile-nav-files"
+            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-blue rounded-md transition-all"
+          >
+            <i class="fas fa-folder-open w-6 text-center"></i>
+            <span>All Files</span>
+          </a>
+          <a
+            href="#"
+            onclick="switchDashboardSection('doctors', true)"
+            id="mobile-nav-doctors"
+            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-green rounded-md transition-all"
+          >
+            <i class="fas fa-user-md w-6 text-center"></i>
+            <span>Doctors</span>
+          </a>
+          <a
+            href="#"
+            onclick="switchDashboardSection('analytics', true)"
+            id="mobile-nav-analytics"
+            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-pink rounded-md transition-all"
+          >
+            <i class="fas fa-chart-bar w-6 text-center"></i>
+            <span>Analytics</span>
+          </a>
+          <a
+            href="#"
+            onclick="switchDashboardSection('settings', true)"
+            id="mobile-nav-settings"
+            class="nav-link-mobile flex items-center gap-3 p-3 text-gray-400 hover:bg-gray-800 hover:text-neon-purple rounded-md transition-all"
+          >
+            <i class="fas fa-cog w-6 text-center"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800">
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-2 p-2 text-gray-400 hover:text-red-400 transition-colors bg-gray-800/50 rounded-lg hover:bg-gray-800"
+          >
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </aside>
+      <div
+        id="mobile-sidebar-backdrop"
+        class="hidden fixed inset-0 bg-black/50 z-30 md:hidden"
+        onclick="toggleMobileSidebar()"
+      ></div>
+
+      <!-- Main Content -->
+      <main
+        class="flex-1 flex flex-col relative bg-gradient-to-br from-gray-900/50 to-slate-900/50 overflow-hidden"
+      >
+        <header
+          class="h-16 border-b border-gray-800 flex items-center justify-between px-6 bg-gray-900/70 backdrop-blur-md sticky top-0 z-10"
+        >
+          <div class="flex items-center gap-4">
+            <button
+              onclick="toggleMobileSidebar()"
+              class="text-white text-xl md:hidden hover:text-neon-blue"
+            >
+              <i class="fas fa-bars"></i>
             </button>
-            <button
-              onclick="closePreview()"
-              class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
+            <h2
+              id="main-content-title"
+              class="text-xl font-semibold text-white"
             >
-              Close
+              Dashboard Overview
+            </h2>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="relative hidden sm:block">
+              <i
+                class="fas fa-search absolute left-3 top-2.5 text-gray-500"
+              ></i>
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Search doctor or date..."
+                class="bg-gray-800 border border-gray-700 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:ring-2 focus:ring-neon-blue outline-none w-48 transition-all focus:w-64"
+              />
+            </div>
+
+            <button
+              onclick="openUploadModal()"
+              class="bg-gradient-to-r from-neon-blue to-cyan-500 hover:from-cyan-500 hover:to-neon-blue text-black font-bold py-2 px-4 rounded-full shadow-neon-blue transition-all flex items-center gap-2 tooltip"
+              data-tooltip="Upload new prescription"
+            >
+              <i class="fas fa-plus"></i>
+              <span class="hidden sm:inline">Upload</span>
+            </button>
+
+            <button
+              onclick="refreshDashboard()"
+              class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full transition-colors tooltip"
+              data-tooltip="Refresh data"
+            >
+              <i class="fas fa-sync-alt"></i>
             </button>
           </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6" id="dashboard-content">
+          <!-- Overview Section -->
+          <div id="overview-section" class="">
+            <h3 class="text-2xl font-bold text-neon-blue mb-6">
+              <i class="fas fa-tachometer-alt mr-2"></i> Dashboard Overview
+            </h3>
+
+            <!-- Storage Summary Card -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div
+                class="col-span-full bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-blue/20"
+              >
+                <h4 class="text-lg font-semibold text-white mb-4">
+                  Storage Summary
+                </h4>
+                <div class="space-y-4">
+                  <div>
+                    <div
+                      class="flex justify-between text-sm text-gray-400 mb-1"
+                    >
+                      <span>Used Storage</span>
+                      <span id="storage-used">0 MB</span>
+                    </div>
+                    <div class="storage-bar">
+                      <div
+                        id="storage-fill"
+                        class="storage-fill bg-gradient-to-r from-neon-blue to-cyan-500"
+                        style="width: 0%"
+                      ></div>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="bg-gray-800/50 p-3 rounded-lg">
+                      <p class="text-gray-400">Total Files</p>
+                      <p
+                        id="storage-total-files"
+                        class="text-xl font-bold text-white"
+                      >
+                        0
+                      </p>
+                    </div>
+                    <div class="bg-gray-800/50 p-3 rounded-lg">
+                      <p class="text-gray-400">Avg. File Size</p>
+                      <p
+                        id="storage-avg-size"
+                        class="text-xl font-bold text-white"
+                      >
+                        0 KB
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Total Prescriptions Card -->
+              <div
+                class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-blue/20 flex items-center gap-4 hover:border-neon-blue transition-colors cursor-pointer"
+                onclick="switchDashboardSection('files')"
+              >
+                <div
+                  class="p-4 bg-neon-blue/20 rounded-full text-neon-blue text-3xl"
+                >
+                  <i class="fas fa-file-prescription"></i>
+                </div>
+                <div>
+                  <p class="text-gray-400 text-sm">Total Prescriptions</p>
+                  <p
+                    id="total-prescriptions-count"
+                    class="text-3xl font-bold text-white"
+                  >
+                    0
+                  </p>
+                </div>
+              </div>
+
+              <!-- Total Doctors Card -->
+              <div
+                class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-purple/20 flex items-center gap-4 hover:border-neon-purple transition-colors cursor-pointer"
+                onclick="switchDashboardSection('doctors')"
+              >
+                <div
+                  class="p-4 bg-neon-purple/20 rounded-full text-neon-purple text-3xl"
+                >
+                  <i class="fas fa-user-md"></i>
+                </div>
+                <div>
+                  <p class="text-gray-400 text-sm">Unique Doctors</p>
+                  <p
+                    id="total-doctors-count"
+                    class="text-3xl font-bold text-white"
+                  >
+                    0
+                  </p>
+                </div>
+              </div>
+
+              <!-- Recent Uploads Card -->
+              <div
+                class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-green/20 flex items-center gap-4 hover:border-neon-green transition-colors"
+              >
+                <div
+                  class="p-4 bg-neon-green/20 rounded-full text-neon-green text-3xl"
+                >
+                  <i class="fas fa-clock"></i>
+                </div>
+                <div>
+                  <p class="text-gray-400 text-sm">Recent Upload</p>
+                  <p id="recent-upload" class="text-lg font-bold text-white">
+                    No files yet
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-8">
+              <h4 class="text-lg font-semibold text-white mb-4">
+                Quick Actions
+              </h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button
+                  onclick="openUploadModal()"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-xl flex items-center gap-3 transition-colors"
+                >
+                  <i class="fas fa-upload text-neon-blue"></i>
+                  <span>Upload New</span>
+                </button>
+                <button
+                  onclick="exportData()"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-xl flex items-center gap-3 transition-colors"
+                >
+                  <i class="fas fa-download text-neon-green"></i>
+                  <span>Export Data</span>
+                </button>
+                <button
+                  onclick="showHelp()"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-xl flex items-center gap-3 transition-colors"
+                >
+                  <i class="fas fa-question-circle text-neon-purple"></i>
+                  <span>Help & Guide</span>
+                </button>
+                <button
+                  onclick="clearFilters()"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-4 rounded-xl flex items-center gap-3 transition-colors"
+                >
+                  <i class="fas fa-filter text-neon-pink"></i>
+                  <span>Clear Filters</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Files Section -->
+          <div id="files-section" class="hidden-section">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-2xl font-bold text-neon-blue">
+                <i class="fas fa-folder-open mr-2"></i> All Prescriptions
+              </h3>
+              <div class="flex gap-2">
+                <select
+                  id="sort-select"
+                  onchange="sortFiles()"
+                  class="neon-input text-sm py-2 px-3 rounded-lg"
+                >
+                  <option value="date-desc">Newest First</option>
+                  <option value="date-asc">Oldest First</option>
+                  <option value="name-asc">A-Z</option>
+                  <option value="name-desc">Z-A</option>
+                  <option value="size-desc">Largest First</option>
+                  <option value="size-asc">Smallest First</option>
+                </select>
+                <button
+                  onclick="toggleViewMode()"
+                  class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg tooltip"
+                  data-tooltip="Toggle view"
+                >
+                  <i id="view-toggle-icon" class="fas fa-list"></i>
+                </button>
+              </div>
+            </div>
+            <div
+              id="files-container"
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start"
+            >
+              <div class="text-center col-span-full mt-20 text-gray-500">
+                <i
+                  class="fas fa-spinner fa-spin text-3xl mb-4 text-neon-blue"
+                ></i>
+                <p>Loading records...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Doctors Section -->
+          <div id="doctors-section" class="hidden-section">
+            <h3 class="text-2xl font-bold text-neon-green mb-6">
+              <i class="fas fa-user-md mr-2"></i> Doctors & Clinics
+            </h3>
+            <div
+              id="doctors-list-container"
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              <div class="text-center col-span-full mt-10 text-gray-500">
+                <i
+                  class="fas fa-spinner fa-spin text-3xl mb-4 text-neon-green"
+                ></i>
+                <p>Loading doctors...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analytics Section -->
+          <div id="analytics-section" class="hidden-section">
+            <h3 class="text-2xl font-bold text-neon-pink mb-6">
+              <i class="fas fa-chart-bar mr-2"></i> Analytics
+            </h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                <h4 class="text-lg font-semibold text-white mb-4">
+                  Storage Usage by Type
+                </h4>
+                <div
+                  id="storage-chart"
+                  class="h-64 flex items-center justify-center text-gray-500"
+                >
+                  <p>Chart will appear here</p>
+                </div>
+              </div>
+              <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                <h4 class="text-lg font-semibold text-white mb-4">
+                  Upload Activity
+                </h4>
+                <div
+                  id="activity-chart"
+                  class="h-64 flex items-center justify-center text-gray-500"
+                >
+                  <p>Activity chart will appear here</p>
+                </div>
+              </div>
+              <div
+                class="col-span-full bg-gray-900 border border-gray-800 rounded-xl p-6"
+              >
+                <h4 class="text-lg font-semibold text-white mb-4">
+                  File Statistics
+                </h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div class="text-center p-4 bg-gray-800/50 rounded-lg">
+                    <p class="text-gray-400 text-sm">Total Files</p>
+                    <p
+                      id="stats-total-files"
+                      class="text-2xl font-bold text-white"
+                    >
+                      0
+                    </p>
+                  </div>
+                  <div class="text-center p-4 bg-gray-800/50 rounded-lg">
+                    <p class="text-gray-400 text-sm">Images</p>
+                    <p id="stats-images" class="text-2xl font-bold text-white">
+                      0
+                    </p>
+                  </div>
+                  <div class="text-center p-4 bg-gray-800/50 rounded-lg">
+                    <p class="text-gray-400 text-sm">PDFs</p>
+                    <p id="stats-pdfs" class="text-2xl font-bold text-white">
+                      0
+                    </p>
+                  </div>
+                  <div class="text-center p-4 bg-gray-800/50 rounded-lg">
+                    <p class="text-gray-400 text-sm">Other</p>
+                    <p id="stats-other" class="text-2xl font-bold text-white">
+                      0
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings Section -->
+          <div id="settings-section" class="hidden-section max-w-2xl mx-auto">
+            <h3 class="text-2xl font-bold text-neon-purple mb-6">
+              <i class="fas fa-cog mr-2"></i> User Settings
+            </h3>
+
+            <div
+              class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-purple/20 mb-6"
+            >
+              <h4 class="text-xl font-semibold mb-4 text-white">
+                Change Password (Token-Based)
+              </h4>
+              <form id="dashboard-change-password-form" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                    >Reset Token</label
+                  >
+                  <input
+                    type="text"
+                    id="reset-token-input"
+                    class="neon-input w-full p-3 rounded-lg"
+                    placeholder="Paste your reset token here..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                    >New Password</label
+                  >
+                  <input
+                    type="password"
+                    id="dash-new-pwd"
+                    class="neon-input w-full p-3 rounded-lg"
+                    placeholder="New Password"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-1"
+                    >Confirm New Password</label
+                  >
+                  <input
+                    type="password"
+                    id="dash-confirm-pwd"
+                    class="neon-input w-full p-3 rounded-lg"
+                    placeholder="Confirm New Password"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-gradient-to-r from-neon-purple to-pink-600 hover:from-neon-purple/90 text-white font-bold py-3 rounded-lg shadow-neon-purple transition-all"
+                >
+                  <i class="fas fa-key mr-2"></i> Change Password
+                </button>
+              </form>
+            </div>
+
+            <div
+              class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-blue/20 mb-6"
+            >
+              <h4 class="text-xl font-semibold mb-4 text-white">
+                Account Information
+              </h4>
+              <div class="space-y-3">
+                <div>
+                  <p class="text-sm text-gray-400">Email</p>
+                  <p id="settings-email" class="text-neon-blue font-mono">
+                    user@example.com
+                  </p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-400">User ID</p>
+                  <p
+                    id="settings-user-id"
+                    class="text-gray-500 font-mono text-xs"
+                  >
+                    Loading...
+                  </p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-400">Account Created</p>
+                  <p id="settings-created" class="text-gray-500">-</p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-neon-green/20"
+            >
+              <h4 class="text-xl font-semibold mb-4 text-white">
+                Storage Settings
+              </h4>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between text-sm text-gray-400 mb-1">
+                    <span>Storage Limit</span>
+                    <span>100 MB</span>
+                  </div>
+                  <div class="storage-bar">
+                    <div
+                      id="settings-storage-fill"
+                      class="storage-fill bg-gradient-to-r from-neon-green to-emerald-500"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                </div>
+                <button
+                  onclick="clearAllFiles()"
+                  class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-all"
+                >
+                  <i class="fas fa-trash-alt mr-2"></i> Clear All Files (Danger)
+                </button>
+                <p class="text-xs text-gray-500">
+                  This will delete all your uploaded prescriptions. This action
+                  cannot be undone.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+      </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div
+      id="upload-modal"
+      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl relative"
+      >
+        <button
+          onclick="closeModal('upload-modal')"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white"
+        >
+          <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <div class="p-6 border-b border-gray-800">
+          <h3 class="text-xl font-bold text-white">Upload Prescription</h3>
+        </div>
+
+        <form id="upload-form" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Doctor/Clinic Name</label
+            >
+            <input
+              type="text"
+              id="upload-doctor"
+              class="neon-input w-full p-3 rounded-lg"
+              placeholder="e.g. Dr. Strange"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Date of Visit</label
+            >
+            <input
+              type="date"
+              id="upload-date"
+              class="neon-input w-full p-3 rounded-lg text-gray-300"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >File (Image/PDF)</label
+            >
+            <div
+              class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-neon-blue transition-colors cursor-pointer relative group"
+            >
+              <input
+                type="file"
+                id="upload-file"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                accept=".pdf,.jpg,.jpeg,.png,.gif"
+                required
+              />
+              <i
+                class="fas fa-cloud-upload-alt text-3xl text-gray-500 group-hover:text-neon-blue mb-2"
+              ></i>
+              <p class="text-sm text-gray-400 group-hover:text-white">
+                Click or drag file to upload
+              </p>
+              <p id="file-name-display" class="text-xs text-neon-blue mt-2"></p>
+              <p class="text-xs text-gray-500 mt-1">Max file size: 5MB</p>
+            </div>
+          </div>
+          <div class="pt-4 flex justify-end gap-3">
+            <button
+              type="button"
+              onclick="closeModal('upload-modal')"
+              class="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-gradient-to-r from-neon-blue to-cyan-500 text-black font-bold px-6 py-2 rounded-lg hover:shadow-neon-blue transition-all"
+            >
+              Upload
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
     <!-- Edit Modal -->
-    <div id="editModal" class="fixed inset-0 z-50 hidden">
-      <div class="modal-overlay absolute inset-0"></div>
-      <div class="flex items-center justify-center min-h-screen p-4">
-        <div
-          class="glass rounded-2xl shadow-2xl w-full max-w-md relative slide-up"
-        >
-          <div
-            class="flex justify-between items-center p-6 border-b border-gray-700"
-          >
-            <h3 class="text-xl font-bold text-white">Edit Prescription</h3>
-            <button
-              onclick="closeEditModal()"
-              class="text-gray-400 hover:text-white transition-colors duration-300"
-            >
-              <i class="fas fa-times text-2xl"></i>
-            </button>
-          </div>
-          <div class="p-6">
-            <div class="space-y-4">
-              <div>
-                <label for="editDocname" class="block text-gray-300 mb-2"
-                  >Doctor Name</label
-                >
-                <input
-                  id="editDocname"
-                  type="text"
-                  placeholder="Dr. Smith"
-                  class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                />
-              </div>
-              <div>
-                <label for="editDate" class="block text-gray-300 mb-2"
-                  >Date</label
-                >
-                <input
-                  id="editDate"
-                  type="date"
-                  class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                />
-              </div>
-            </div>
-          </div>
-          <div class="flex justify-end p-6 border-t border-gray-700">
-            <button
-              onclick="closeEditModal()"
-              class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 mr-2"
-            >
-              Cancel
-            </button>
-            <button
-              id="saveEditBtn"
-              class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-            >
-              <i class="fas fa-save mr-2"></i> Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Delete Modal -->
-    <div id="deleteModal" class="fixed inset-0 z-50 hidden">
-      <div class="modal-overlay absolute inset-0"></div>
-      <div class="flex items-center justify-center min-h-screen p-4">
-        <div
-          class="glass rounded-2xl shadow-2xl w-full max-w-md relative slide-up"
-        >
-          <div
-            class="flex justify-between items-center p-6 border-b border-gray-700"
-          >
-            <h3 class="text-xl font-bold text-white">Delete Prescription</h3>
-            <button
-              onclick="closeDeleteModal()"
-              class="text-gray-400 hover:text-white transition-colors duration-300"
-            >
-              <i class="fas fa-times text-2xl"></i>
-            </button>
-          </div>
-          <div class="p-6">
-            <div class="text-center">
-              <i
-                class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"
-              ></i>
-              <p class="text-gray-300 mb-2">
-                Are you sure you want to delete this prescription?
-              </p>
-              <p class="text-gray-400 text-sm" id="deleteFileName"></p>
-              <p class="text-red-400 text-sm mt-2">
-                This action cannot be undone.
-              </p>
-            </div>
-          </div>
-          <div class="flex justify-end p-6 border-t border-gray-700">
-            <button
-              onclick="closeDeleteModal()"
-              class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 mr-2"
-            >
-              Cancel
-            </button>
-            <button
-              id="confirmDeleteBtn"
-              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-            >
-              <i class="fas fa-trash mr-2"></i> Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Header -->
-    <header class="glass shadow-xl py-4 sticky top-0 z-40">
+    <div
+      id="edit-modal"
+      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4"
+    >
       <div
-        class="container mx-auto px-4 md:px-6 flex justify-between items-center"
+        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl relative"
       >
-        <div class="flex items-center">
-          <div
-            class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center mr-3 pulse-glow"
-          >
-            <i class="fas fa-pills text-white"></i>
-          </div>
-          <h1 class="text-xl font-bold text-white">
-            Medi<span class="gradient-text">Vault</span>
-          </h1>
-        </div>
-        <div id="userInfo" class="hidden slide-up">
-          <div class="flex items-center">
-            <div
-              class="w-8 h-8 rounded-full gradient-bg flex items-center justify-center text-white mr-3"
-            >
-              <i class="fas fa-user text-sm"></i>
-            </div>
-            <span
-              id="userEmail"
-              class="text-gray-300 mr-4 hidden md:inline"
-            ></span>
-            <button
-              onclick="logout()"
-              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-            >
-              <i class="fas fa-sign-out-alt mr-2"></i>
-              <span class="hidden md:inline">Logout</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Welcome / Auth Selection Section -->
-    <section id="welcomeSection" class="py-12 px-4 fade-in">
-      <div class="max-w-6xl mx-auto">
-        <div class="text-center mb-12 slide-up">
-          <div
-            class="w-24 h-24 rounded-full gradient-bg flex items-center justify-center mx-auto mb-6 shadow-xl pulse-glow"
-          >
-            <i class="fas fa-file-medical text-white text-4xl"></i>
-          </div>
-          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-            Secure Prescription Management
-          </h1>
-          <p class="text-xl text-gray-300 max-w-2xl mx-auto">
-            Store, organize, and access your medical prescriptions anytime,
-            anywhere with bank-level security.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          <div class="glass rounded-2xl shadow-xl p-8 card-hover">
-            <div
-              class="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mb-6 mx-auto"
-            >
-              <i class="fas fa-user-plus text-white text-2xl"></i>
-            </div>
-            <h3 class="text-2xl font-semibold text-white mb-4 text-center">
-              Create Account
-            </h3>
-            <p class="text-gray-400 mb-6 text-center">
-              Join thousands of users who securely manage their prescriptions
-              with MediVault.
-            </p>
-            <button
-              onclick="showRegister()"
-              class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105"
-            >
-              <i class="fas fa-user-plus mr-2"></i> Get Started
-            </button>
-          </div>
-
-          <div class="glass rounded-2xl shadow-xl p-8 card-hover">
-            <div
-              class="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center mb-6 mx-auto"
-            >
-              <i class="fas fa-sign-in-alt text-white text-2xl"></i>
-            </div>
-            <h3 class="text-2xl font-semibold text-white mb-4 text-center">
-              Existing User
-            </h3>
-            <p class="text-gray-400 mb-6 text-center">
-              Access your prescriptions and medical records securely.
-            </p>
-            <button
-              onclick="showLogin()"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105"
-            >
-              <i class="fas fa-sign-in-alt mr-2"></i> Sign In
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Register Section -->
-    <section id="registerSection" class="py-12 px-4 hidden">
-      <div class="max-w-md mx-auto glass rounded-2xl shadow-2xl p-8 slide-up">
-        <div class="text-center mb-8">
-          <div
-            class="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4"
-          >
-            <i class="fas fa-user-plus text-white text-3xl"></i>
-          </div>
-          <h2 class="text-2xl font-bold text-white">Create Your Account</h2>
-          <p class="text-gray-400 mt-2">
-            Join MediVault to securely store your medical records
-          </p>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            <label for="regEmail" class="block text-gray-300 mb-2"
-              >Email Address</label
-            >
-            <input
-              id="regEmail"
-              type="email"
-              placeholder="your@email.com"
-              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
-            />
-          </div>
-
-          <div>
-            <label for="regPassword" class="block text-gray-300 mb-2"
-              >Password</label
-            >
-            <input
-              id="regPassword"
-              type="password"
-              placeholder="••••••••"
-              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
-            />
-          </div>
-
-          <div>
-            <label for="confirmPassword" class="block text-gray-300 mb-2"
-              >Confirm Password</label
-            >
-            <input
-              id="confirmPassword"
-              type="password"
-              placeholder="••••••••"
-              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
-            />
-          </div>
-
-          <button
-            onclick="register()"
-            class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105 mt-6"
-          >
-            <i class="fas fa-user-plus mr-2"></i> Create Account
-          </button>
-
-          <div class="text-center mt-4">
-            <button
-              onclick="showWelcome()"
-              class="text-blue-400 hover:text-blue-300 transition-colors duration-300 flex items-center justify-center mx-auto"
-            >
-              <i class="fas fa-arrow-left mr-2"></i> Back to Home
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Login Section -->
-    <section id="loginSection" class="py-12 px-4 hidden">
-      <div class="max-w-md mx-auto glass rounded-2xl shadow-2xl p-8 slide-up">
-        <div class="text-center mb-8">
-          <div
-            class="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center mx-auto mb-4"
-          >
-            <i class="fas fa-sign-in-alt text-white text-3xl"></i>
-          </div>
-          <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
-          <p class="text-gray-400 mt-2">Sign in to access your prescriptions</p>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            <label for="loginEmail" class="block text-gray-300 mb-2"
-              >Email Address</label
-            >
-            <input
-              id="loginEmail"
-              type="email"
-              placeholder="your@email.com"
-              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-            />
-          </div>
-
-          <div>
-            <label for="loginPassword" class="block text-gray-300 mb-2"
-              >Password</label
-            >
-            <input
-              id="loginPassword"
-              type="password"
-              placeholder="••••••••"
-              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-            />
-          </div>
-
-          <button
-            onclick="login()"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105 mt-6"
-          >
-            <i class="fas fa-sign-in-alt mr-2"></i> Sign In
-          </button>
-
-          <div class="text-center mt-4">
-            <button
-              onclick="showWelcome()"
-              class="text-blue-400 hover:text-blue-300 transition-colors duration-300 flex items-center justify-center mx-auto"
-            >
-              <i class="fas fa-arrow-left mr-2"></i> Back to Home
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- App Section -->
-    <section id="appSection" class="py-8 px-4 hidden">
-      <div class="container mx-auto max-w-7xl">
-        <!-- Dashboard Header -->
-        <div class="glass rounded-2xl shadow-xl p-6 mb-8 slide-up">
-          <div
-            class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"
-          >
-            <div>
-              <h2 class="text-2xl md:text-3xl font-bold text-white">
-                Your Prescriptions
-              </h2>
-              <p class="text-gray-400">
-                Welcome back,
-                <span
-                  id="appUserEmail"
-                  class="text-blue-400 font-medium"
-                ></span>
-              </p>
-            </div>
-            <div class="mt-4 md:mt-0 flex flex-wrap gap-3">
-              <button
-                onclick="showUploadModal()"
-                class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-              >
-                <i class="fas fa-plus mr-2"></i> New Prescription
-              </button>
-              <button
-                onclick="logout()"
-                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-              >
-                <i class="fas fa-sign-out-alt mr-2"></i> Logout
-              </button>
-            </div>
-          </div>
-
-          <!-- Search and Filters -->
-          <div class="flex flex-col md:flex-row gap-4">
-            <div class="relative flex-grow">
-              <div
-                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-              >
-                <i class="fas fa-search text-gray-500"></i>
-              </div>
-              <input
-                id="searchInput"
-                type="text"
-                placeholder="Search prescriptions by doctor, date, or filename..."
-                class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 search-input"
-                onkeyup="filterPrescriptions()"
-              />
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <div class="relative">
-                <select
-                  id="doctorFilter"
-                  class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 appearance-none pr-8"
-                  onchange="filterPrescriptions()"
-                >
-                  <option value="">All Doctors</option>
-                </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
-                >
-                  <i class="fas fa-chevron-down"></i>
-                </div>
-              </div>
-              <div class="relative">
-                <select
-                  id="dateFilter"
-                  class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 appearance-none pr-8"
-                  onchange="filterPrescriptions()"
-                >
-                  <option value="">All Dates</option>
-                  <option value="today">Today</option>
-                  <option value="week">This Week</option>
-                  <option value="month">This Month</option>
-                  <option value="year">This Year</option>
-                </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
-                >
-                  <i class="fas fa-chevron-down"></i>
-                </div>
-              </div>
-              <button
-                onclick="clearFilters()"
-                class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-              >
-                <i class="fas fa-times mr-2"></i> Clear
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats Overview -->
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8"
+        <button
+          onclick="closeModal('edit-modal')"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white"
         >
-          <div class="glass rounded-2xl p-6 flex items-center card-hover">
-            <div
-              class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center mr-4"
-            >
-              <i class="fas fa-file-medical text-white"></i>
-            </div>
-            <div>
-              <p class="text-gray-400 text-sm">Total Prescriptions</p>
-              <p id="totalPrescriptions" class="text-2xl font-bold text-white">
-                0
-              </p>
-            </div>
-          </div>
-          <div class="glass rounded-2xl p-6 flex items-center card-hover">
-            <div
-              class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mr-4"
-            >
-              <i class="fas fa-user-md text-white"></i>
-            </div>
-            <div>
-              <p class="text-gray-400 text-sm">Doctors</p>
-              <p id="totalDoctors" class="text-2xl font-bold text-white">0</p>
-            </div>
-          </div>
-          <div class="glass rounded-2xl p-6 flex items-center card-hover">
-            <div
-              class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center mr-4"
-            >
-              <i class="fas fa-calendar-alt text-white"></i>
-            </div>
-            <div>
-              <p class="text-gray-400 text-sm">This Month</p>
-              <p id="monthPrescriptions" class="text-2xl font-bold text-white">
-                0
-              </p>
-            </div>
-          </div>
+          <i class="fas fa-times text-xl"></i>
+        </button>
+        <div class="p-6 border-b border-gray-800">
+          <h3 class="text-xl font-bold text-white">Edit Details</h3>
         </div>
-
-        <!-- Prescriptions Grid -->
-        <div class="glass rounded-2xl shadow-xl p-4 sm:p-6 slide-up">
-          <!-- Header Section with improved mobile layout -->
-          <div
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
-          >
-            <div class="flex items-center">
-              <i
-                class="fas fa-file-medical text-blue-400 text-xl sm:text-2xl mr-2"
-              ></i>
-              <h3 class="text-lg sm:text-xl font-semibold text-white">
-                Your Prescriptions
-              </h3>
-            </div>
-
-            <!-- Action Buttons - Stack on mobile, row on larger screens -->
-            <div
-              class="flex flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end"
+        <form id="edit-form" class="p-6 space-y-4">
+          <input type="hidden" id="edit-id" />
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Doctor/Clinic Name</label
             >
-              <button
-                onclick="toggleViewMode()"
-                id="viewToggle"
-                class="bg-gray-700 hover:bg-gray-600 text-white p-2 sm:p-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex-shrink-0"
-                title="Toggle View"
-              >
-                <i class="fas fa-th text-sm sm:text-base"></i>
-              </button>
-              <button
-                onclick="listFiles()"
-                class="bg-gray-700 hover:bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 flex-1 sm:flex-none justify-center"
-              >
-                <i class="fas fa-sync-alt mr-2 text-sm sm:text-base"></i>
-                <span class="text-sm sm:text-base">Refresh</span>
-              </button>
-              <button
-                onclick="showUploadModal()"
-                class="gradient-bg hover:opacity-90 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 flex-1 sm:flex-none justify-center"
-              >
-                <i class="fas fa-plus mr-2 text-sm sm:text-base"></i>
-                <span class="text-sm sm:text-base">New</span>
-              </button>
-            </div>
+            <input
+              type="text"
+              id="edit-doctor"
+              class="neon-input w-full p-3 rounded-lg"
+              required
+            />
           </div>
-
-          <!-- Prescriptions Grid -->
-          <div
-            id="list"
-            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[200px]"
-          ></div>
-
-          <!-- Empty State -->
-          <div id="emptyState" class="hidden text-center py-8 sm:py-16">
-            <div class="max-w-md mx-auto">
-              <i
-                class="fas fa-file-medical text-4xl sm:text-6xl text-gray-500 mb-4"
-              ></i>
-              <h3 class="text-lg sm:text-xl font-semibold text-gray-300 mb-3">
-                No Prescriptions Found
-              </h3>
-              <p class="text-gray-400 text-sm sm:text-base mb-6">
-                Start by uploading your first prescription or adjust your search
-                filters
-              </p>
-              <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onclick="showUploadModal()"
-                  class="gradient-bg hover:opacity-90 text-white px-4 py-3 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105"
-                >
-                  <i class="fas fa-plus mr-2"></i>
-                  Upload Prescription
-                </button>
-                <button
-                  onclick="clearFilters()"
-                  class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-105"
-                >
-                  <i class="fas fa-times mr-2"></i>
-                  Clear Filters
-                </button>
-              </div>
-            </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1"
+              >Date of Visit</label
+            >
+            <input
+              type="date"
+              id="edit-date"
+              class="neon-input w-full p-3 rounded-lg text-gray-300"
+              required
+            />
           </div>
-
-          <!-- Loading State -->
-          <div id="loadingState" class="hidden text-center py-12">
-            <div
-              class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"
-            ></div>
-            <p class="text-gray-400">Loading your prescriptions...</p>
-          </div>
-
-          <!-- Error State -->
-          <div id="errorState" class="hidden text-center py-8 text-red-400">
-            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
-            <p class="mb-4">Error loading prescriptions</p>
+          <div class="pt-4 flex justify-end gap-3">
             <button
-              onclick="listFiles()"
-              class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Upload Modal -->
-    <div id="uploadModal" class="fixed inset-0 z-50 hidden">
-      <div class="modal-overlay absolute inset-0"></div>
-      <div class="flex items-center justify-center min-h-screen p-4">
-        <div
-          class="glass rounded-2xl shadow-2xl w-full max-w-2xl relative slide-up flex flex-col max-h-[90vh]"
-        >
-          <div
-            class="flex flex-wrap justify-between items-center p-6 border-b border-gray-700"
-          >
-            <h3
-              class="text-xl font-bold text-white w-full sm:w-auto mb-3 sm:mb-0"
-            >
-              Upload New Prescription
-            </h3>
-
-            <button
-              onclick="closeUploadModal()"
-              class="text-gray-400 hover:text-white transition-colors duration-300"
-            >
-              <i class="fas fa-times text-2xl"></i>
-            </button>
-          </div>
-
-          <div class="p-6 overflow-y-auto flex-1 max-h-[calc(90vh-140px)]">
-            <!-- File Drop Zone -->
-            <div
-              id="fileDropZone"
-              class="file-drop-zone rounded-xl p-8 text-center mb-6 cursor-pointer"
-            >
-              <i
-                class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-4"
-              ></i>
-              <p class="text-gray-400 mb-2">
-                Drag & drop your prescription file here
-              </p>
-              <p class="text-gray-500 text-sm">
-                or click to browse (JPG, PNG, PDF - max 10MB)
-              </p>
-              <input
-                id="file"
-                type="file"
-                class="hidden"
-                accept=".jpg,.jpeg,.png,.pdf"
-              />
-            </div>
-
-            <!-- Selected File Info -->
-            <div
-              id="selectedFileInfo"
-              class="hidden bg-gray-800 rounded-lg p-4 mb-4 slide-up"
-            >
-              <div class="flex justify-between items-center">
-                <div class="flex items-center">
-                  <i class="fas fa-file text-blue-400 text-xl mr-3"></i>
-                  <div>
-                    <p id="fileName" class="text-white font-medium"></p>
-                    <p id="fileSize" class="text-gray-400 text-sm"></p>
-                  </div>
-                </div>
-                <button
-                  onclick="clearFileSelection()"
-                  class="text-red-400 hover:text-red-300"
-                >
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Upload Progress -->
-            <div id="uploadProgress" class="hidden mb-4 slide-up">
-              <div class="flex justify-between text-sm text-gray-400 mb-2">
-                <span>Uploading...</span>
-                <span id="progressPercent">0%</span>
-              </div>
-              <div class="w-full bg-gray-700 rounded-full h-2">
-                <div
-                  id="progressBar"
-                  class="gradient-bg h-2 rounded-full transition-all duration-300"
-                  style="width: 0%"
-                ></div>
-              </div>
-            </div>
-
-            <form id="uploadForm" class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="docname" class="block text-gray-300 mb-2"
-                    >Doctor Name</label
-                  >
-                  <input
-                    id="docname"
-                    type="text"
-                    placeholder="Dr. Smith"
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                  />
-                </div>
-
-                <div>
-                  <label for="date" class="block text-gray-300 mb-2"
-                    >Date</label
-                  >
-                  <input
-                    id="date"
-                    type="date"
-                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label for="notes" class="block text-gray-300 mb-2"
-                  >Notes (Optional)</label
-                >
-                <textarea
-                  id="notes"
-                  rows="3"
-                  placeholder="Add any additional notes about this prescription..."
-                  class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 resize-none"
-                ></textarea>
-              </div>
-            </form>
-          </div>
-
-          <!-- Sticky button container on mobile -->
-          <div
-            class="flex justify-end p-6 border-t border-gray-700 bg-gray-900/80 backdrop-blur-sm sticky bottom-0 rounded-b-2xl"
-          >
-            <button
-              onclick="closeUploadModal()"
-              class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 mr-2"
+              type="button"
+              onclick="closeModal('edit-modal')"
+              class="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
             >
               Cancel
             </button>
             <button
-              id="uploadBtn"
-              type="button"
-              onclick="uploadFile()"
-              class="gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              disabled
+              type="submit"
+              class="bg-gradient-to-r from-neon-purple to-pink-600 text-white font-bold px-6 py-2 rounded-lg hover:shadow-neon-purple transition-all"
             >
-              <i class="fas fa-upload mr-2"></i> Upload Prescription
+              Update
             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div
+      id="preview-modal"
+      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-4xl shadow-2xl relative"
+      >
+        <button
+          onclick="closeModal('preview-modal')"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white z-10"
+        >
+          <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <div
+          class="p-6 border-b border-gray-800 flex justify-between items-center"
+        >
+          <h3 class="text-xl font-bold text-white">
+            <span id="preview-title">Preview</span>
+          </h3>
+          <div class="flex gap-2">
+            <button
+              onclick="rotatePreview(-90)"
+              class="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg tooltip"
+              data-tooltip="Rotate Left"
+            >
+              <i class="fas fa-rotate-left"></i>
+            </button>
+            <button
+              onclick="rotatePreview(90)"
+              class="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg tooltip"
+              data-tooltip="Rotate Right"
+            >
+              <i class="fas fa-rotate-right"></i>
+            </button>
+            <a
+              id="preview-download-btn"
+              href="#"
+              class="p-2 text-gray-400 hover:text-neon-green hover:bg-gray-800 rounded-lg tooltip"
+              data-tooltip="Download"
+              target="_blank"
+            >
+              <i class="fas fa-download"></i>
+            </a>
+            <button
+              onclick="zoomPreviewIn()"
+              class="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg tooltip"
+              data-tooltip="Zoom In"
+            >
+              <i class="fas fa-search-plus"></i>
+            </button>
+            <button
+              onclick="zoomPreviewOut()"
+              class="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg tooltip"
+              data-tooltip="Zoom Out"
+            >
+              <i class="fas fa-search-minus"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-6 preview-container">
+          <div id="preview-content" class="text-center">
+            <div class="flex items-center justify-center h-64">
+              <i class="fas fa-spinner fa-spin text-4xl text-neon-blue"></i>
+              <span class="ml-4">Loading preview...</span>
+            </div>
+          </div>
+          <div
+            id="preview-pdf-controls"
+            class="hidden mt-4 flex items-center justify-center gap-4"
+          >
+            <button
+              onclick="prevPage()"
+              class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+            >
+              <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <span id="page-info" class="text-sm text-gray-400"
+              >Page 1 of 1</span
+            >
+            <button
+              onclick="nextPage()"
+              class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+            >
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-6 border-t border-gray-800 text-sm text-gray-400">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p class="font-medium">Doctor</p>
+              <p id="preview-doctor" class="text-white">-</p>
+            </div>
+            <div>
+              <p class="font-medium">Date</p>
+              <p id="preview-date" class="text-white">-</p>
+            </div>
+            <div>
+              <p class="font-medium">File Size</p>
+              <p id="preview-size" class="text-white">-</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Help Modal -->
+    <div
+      id="help-modal"
+      class="hidden-section fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl shadow-2xl relative"
+      >
+        <button
+          onclick="closeModal('help-modal')"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white"
+        >
+          <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <div class="p-6 border-b border-gray-800">
+          <h3 class="text-xl font-bold text-white">
+            <i class="fas fa-question-circle mr-2"></i> Help & Guide
+          </h3>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div>
+            <h4 class="font-semibold text-neon-blue mb-2">Uploading Files</h4>
+            <p class="text-gray-400 text-sm">
+              Supported formats: PDF, JPG, PNG, GIF. Max file size: 5MB per
+              file.
+            </p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-neon-green mb-2">
+              Storage Management
+            </h4>
+            <p class="text-gray-400 text-sm">
+              You have 100MB of storage. Monitor your usage in the sidebar and
+              overview sections.
+            </p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-neon-purple mb-2">
+              Preview Features
+            </h4>
+            <p class="text-gray-400 text-sm">
+              Click PREVIEW to view files in modal. Use rotate, zoom, and page
+              controls for PDFs.
+            </p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-neon-pink mb-2">Search & Sort</h4>
+            <p class="text-gray-400 text-sm">
+              Search by doctor name or date. Sort by various criteria using the
+              dropdown.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
-      const API_BASE =
+      const API_URL =
         window.location.hostname === 'localhost'
           ? 'http://localhost:3000'
           : 'https://medical-prescription-backend.vercel.app';
-      let currentUser = null;
-      let currentFileForEdit = null;
-      let currentFileForDelete = null;
-      let currentFileForPreview = null;
       let allFiles = [];
+      let currentViewMode = 'grid'; // 'grid' or 'list'
+      let currentPreviewFile = null;
+      let currentRotation = 0;
+      let currentZoom = 1;
+      let pdfDoc = null;
+      let currentPage = 1;
+      const STORAGE_LIMIT = 100 * 1024 * 1024; // 100 MB in bytes
 
-      // Storage keys
-      const STORAGE_KEYS = {
-        USER: 'prescriptionVault_user',
-        VIEW: 'prescriptionVault_currentView',
+      // ================= HELPER FUNCTIONS =================
+      const showToast = (message, type = 'success') => {
+        const toast = document.getElementById('toast');
+        const content = document.getElementById('toast-content');
+        const msgEl = document.getElementById('toast-message');
+
+        msgEl.innerText = message;
+
+        if (type === 'error') {
+          content.className =
+            'bg-gray-800 border-l-4 border-red-500 text-white px-6 py-4 rounded shadow-[0_0_10px_red] flex items-center gap-3';
+          content.querySelector('i').className =
+            'fas fa-exclamation-circle text-red-500';
+        } else if (type === 'warning') {
+          content.className =
+            'bg-gray-800 border-l-4 border-yellow-500 text-white px-6 py-4 rounded shadow-[0_0_10px_#eab308] flex items-center gap-3';
+          content.querySelector('i').className =
+            'fas fa-exclamation-triangle text-yellow-500';
+        } else {
+          content.className =
+            'bg-gray-800 border-l-4 border-neon-blue text-white px-6 py-4 rounded shadow-neon-blue flex items-center gap-3';
+          content.querySelector('i').className =
+            'fas fa-check-circle text-neon-blue';
+        }
+
+        toast.classList.remove('translate-x-full');
+        setTimeout(() => {
+          toast.classList.add('translate-x-full');
+        }, 3000);
       };
 
-      // Toast notification function
-      function showToast(message, type = 'info') {
-        const toastContainer = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
+      const formatBytes = (bytes, decimals = 2) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return (
+          parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+        );
+      };
 
-        let icon = 'fa-info-circle';
-        if (type === 'success') icon = 'fa-check-circle';
-        if (type === 'error') icon = 'fa-exclamation-circle';
-        if (type === 'warning') icon = 'fa-exclamation-triangle';
+      const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+      };
 
-        toast.innerHTML = `
-          <i class="fas ${icon}"></i>
-          <span>${message}</span>
-        `;
-
-        toastContainer.appendChild(toast);
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-          toast.style.transform = 'translateX(100%)';
-          toast.style.opacity = '0';
-          setTimeout(() => {
-            if (toastContainer.contains(toast)) {
-              toastContainer.removeChild(toast);
-            }
-          }, 300);
-        }, 5000);
-      }
-
-      // Navigation functions
-      function showWelcome() {
-        document.getElementById('welcomeSection').classList.remove('hidden');
-        document.getElementById('registerSection').classList.add('hidden');
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('appSection').classList.add('hidden');
-        saveCurrentView('welcome');
-      }
-
-      function showRegister() {
-        document.getElementById('welcomeSection').classList.add('hidden');
-        document.getElementById('registerSection').classList.remove('hidden');
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('appSection').classList.add('hidden');
-        saveCurrentView('register');
-      }
-
-      function showLogin() {
-        document.getElementById('welcomeSection').classList.add('hidden');
-        document.getElementById('registerSection').classList.add('hidden');
-        document.getElementById('loginSection').classList.remove('hidden');
-        document.getElementById('appSection').classList.add('hidden');
-        saveCurrentView('login');
-      }
-
-      function showApp() {
-        document.getElementById('welcomeSection').classList.add('hidden');
-        document.getElementById('registerSection').classList.add('hidden');
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('appSection').classList.remove('hidden');
-        document.getElementById('userInfo').classList.remove('hidden');
-        saveCurrentView('app');
-      }
-
-      function saveCurrentView(view) {
-        localStorage.setItem(STORAGE_KEYS.VIEW, view);
-      }
-
-      function getCurrentView() {
-        return localStorage.getItem(STORAGE_KEYS.VIEW) || 'welcome';
-      }
-
-      function saveUserData(user) {
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-      }
-
-      function getUserData() {
-        const userData = localStorage.getItem(STORAGE_KEYS.USER);
-        return userData ? JSON.parse(userData) : null;
-      }
-
-      function clearUserData() {
-        localStorage.removeItem(STORAGE_KEYS.USER);
-        localStorage.removeItem(STORAGE_KEYS.VIEW);
-      }
-
-      function restoreUIState() {
-        const savedUser = getUserData();
-        const savedView = getCurrentView();
-
-        if (savedUser) {
-          currentUser = savedUser;
-          document.getElementById('userEmail').textContent = currentUser.email;
-          document.getElementById('appUserEmail').textContent =
-            currentUser.email;
-          document.getElementById('userInfo').classList.remove('hidden');
+      const apiRequest = async (
+        endpoint,
+        method = 'GET',
+        body = null,
+        isFormData = false,
+      ) => {
+        const options = { method };
+        if (!isFormData) {
+          options.headers = { 'Content-Type': 'application/json' };
+        }
+        if (body) {
+          options.body = isFormData ? body : JSON.stringify(body);
+        }
+        const token = localStorage.getItem('token');
+        if (token) {
+          options.headers = options.headers || {};
+          options.headers['Authorization'] = `Bearer ${token}`;
         }
 
-        // Show the saved view
-        switch (savedView) {
-          case 'register':
-            showRegister();
-            break;
-          case 'login':
-            showLogin();
-            break;
-          case 'app':
-            if (savedUser) {
-              showApp();
-              listFiles();
-            } else {
-              showWelcome();
-            }
-            break;
-          default:
-            showWelcome();
-        }
-      }
-
-      function showLoading(show) {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        if (show) {
-          loadingOverlay.classList.remove('hidden');
-        } else {
-          loadingOverlay.classList.add('hidden');
-        }
-      }
-
-      async function apiCall(endpoint, options = {}) {
         try {
-          const response = await fetch(`${API_BASE}${endpoint}`, {
-            headers: {
-              'Content-Type': 'application/json',
-              ...options.headers,
-            },
-            ...options,
-          });
-
+          const response = await fetch(`${API_URL}${endpoint}`, options);
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || 'Request failed');
           return data;
-        } catch (error) {
-          throw new Error(error.message || 'Network error');
+        } catch (err) {
+          showToast(err.message, 'error');
+          throw err;
         }
-      }
+      };
 
-      // Registration function
-      async function register() {
-        const email = document.getElementById('regEmail').value;
-        const password = document.getElementById('regPassword').value;
-        const confirmPassword =
-          document.getElementById('confirmPassword').value;
+      // ================= AUTHENTICATION =================
+      const checkAuth = () => {
+        const token = localStorage.getItem('token');
+        const userEmail = localStorage.getItem('userEmail');
+        const urlParams = new URLSearchParams(window.location.search);
+        const resetToken = urlParams.get('token');
 
-        if (!email || !password || !confirmPassword) {
-          showToast('Please fill in all fields', 'error');
-          return;
-        }
-
-        if (password !== confirmPassword) {
-          showToast('Passwords do not match', 'error');
-          return;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          showToast('Please enter a valid email address', 'error');
-          return;
-        }
-
-        showLoading(true);
-
-        try {
-          await apiCall('/auth/signup', {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-          });
-
-          showToast('Account created successfully! Please login.', 'success');
-          showLogin();
-          // Pre-fill the login form
-          document.getElementById('loginEmail').value = email;
-        } catch (error) {
-          showToast(error.message, 'error');
-        } finally {
-          showLoading(false);
-        }
-      }
-
-      // Login function
-      async function login() {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        if (!email || !password) {
-          showToast('Please enter both email and password', 'error');
-          return;
-        }
-
-        showLoading(true);
-
-        try {
-          const response = await apiCall('/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-          });
-
-          currentUser = response.user || response;
-          currentUser.id = currentUser.id || currentUser._id;
-
-          // Save user data to localStorage
-          saveUserData(currentUser);
-
-          showToast('Welcome back!', 'success');
-          document.getElementById('userEmail').textContent = currentUser.email;
-          document.getElementById('appUserEmail').textContent =
-            currentUser.email;
-          showApp();
-          listFiles();
-        } catch (error) {
-          showToast(error.message, 'error');
-        } finally {
-          showLoading(false);
-        }
-      }
-
-      function logout() {
-        currentUser = null;
-        clearUserData();
-        showToast('Logged out successfully', 'success');
-        showWelcome();
-      }
-
-      // File handling functions
-      function setupFileDropZone() {
-        const dropZone = document.getElementById('fileDropZone');
-        const fileInput = document.getElementById('file');
-
-        dropZone.addEventListener('click', () => {
-          fileInput.click();
-        });
-
-        fileInput.addEventListener('change', handleFileSelect);
-
-        // Drag and drop events
-        dropZone.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          dropZone.classList.add('drag-over');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-          dropZone.classList.remove('drag-over');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-          e.preventDefault();
-          dropZone.classList.remove('drag-over');
-          if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            handleFileSelect();
-          }
-        });
-      }
-
-      function handleFileSelect() {
-        const fileInput = document.getElementById('file');
-        const file = fileInput.files[0];
-
-        if (file) {
-          const fileInfo = document.getElementById('selectedFileInfo');
-          const fileName = document.getElementById('fileName');
-          const fileSize = document.getElementById('fileSize');
-          const uploadBtn = document.getElementById('uploadBtn');
-
-          // Check file size (10MB limit)
-          if (file.size > 10 * 1024 * 1024) {
-            showToast('File size must be less than 10MB', 'error');
-            clearFileSelection();
-            return;
-          }
-
-          // Check file type
-          const allowedTypes = [
-            'image/jpeg',
-            'image/png',
-            'image/jpg',
-            'application/pdf',
-          ];
-          if (!allowedTypes.includes(file.type)) {
-            showToast('Please upload only JPEG, PNG, or PDF files', 'error');
-            clearFileSelection();
-            return;
-          }
-
-          fileName.textContent = file.name;
-          fileSize.textContent = formatFileSize(file.size);
-          fileInfo.classList.remove('hidden');
-          uploadBtn.disabled = false;
-        }
-      }
-
-      function clearFileSelection() {
-        const fileInput = document.getElementById('file');
-        const fileInfo = document.getElementById('selectedFileInfo');
-        const uploadBtn = document.getElementById('uploadBtn');
-
-        fileInput.value = '';
-        fileInfo.classList.add('hidden');
-        uploadBtn.disabled = true;
-      }
-
-      function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-      }
-
-      function showUploadModal() {
-        document.getElementById('uploadModal').classList.remove('hidden');
-      }
-
-      function closeUploadModal() {
-        document.getElementById('uploadModal').classList.add('hidden');
-        document.getElementById('uploadForm').reset();
-        clearFileSelection();
-        document.getElementById('uploadProgress').classList.add('hidden');
-      }
-
-      // Upload with progress simulation
-      async function uploadFile() {
-        const fileInput = document.getElementById('file');
-        const file = fileInput.files[0];
-        const docName = document.getElementById('docname').value;
-        const date = document.getElementById('date').value;
-
-        if (!file) {
-          showToast('Please select a file', 'error');
-          return;
-        }
-        if (!docName || !date) {
-          showToast('Please enter doctor name and date', 'error');
-          return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('doctor', docName);
-        formData.append('date', date);
-        formData.append('userId', currentUser.id);
-
-        try {
-          const uploadBtn = document.getElementById('uploadBtn');
-          const uploadProgress = document.getElementById('uploadProgress');
-          const progressBar = document.getElementById('progressBar');
-          const progressPercent = document.getElementById('progressPercent');
-
-          uploadBtn.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-          uploadBtn.disabled = true;
-          uploadProgress.classList.remove('hidden');
-
-          // Simulate progress (in a real app, you'd use XMLHttpRequest or fetch with progress events)
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 90) {
-              progress = 90;
-            }
-            progressBar.style.width = `${progress}%`;
-            progressPercent.textContent = `${Math.round(progress)}%`;
-          }, 200);
-
-          const response = await fetch(`${API_BASE}/upload`, {
-            method: 'POST',
-            body: formData,
-          });
-
-          clearInterval(progressInterval);
-          progressBar.style.width = '100%';
-          progressPercent.textContent = '100%';
-
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error);
-
-          setTimeout(() => {
-            showToast('File uploaded successfully!', 'success');
-            closeUploadModal();
-            listFiles();
-          }, 500);
-        } catch (error) {
-          showToast('Upload failed: ' + error.message, 'error');
-          document.getElementById('uploadProgress').classList.add('hidden');
-        } finally {
-          const uploadBtn = document.getElementById('uploadBtn');
-          uploadBtn.innerHTML =
-            '<i class="fas fa-upload mr-2"></i> Upload Prescription';
-          uploadBtn.disabled = false;
-        }
-      }
-
-      // List files in grid format
-      async function listFiles() {
-        try {
-          const list = document.getElementById('list');
-          list.innerHTML = `
-            <div class="col-span-full text-center py-12">
-              <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-              <p class="text-gray-400">Loading your prescriptions...</p>
+        if (resetToken) {
+          document.body.innerHTML = `
+            <div class="flex h-screen items-center justify-center bg-neon-bg text-white p-4">
+              <div class="p-8 bg-gray-900 border border-gray-700 rounded-2xl shadow-neon-blue max-w-md w-full">
+                <h2 class="text-2xl mb-4 font-bold text-neon-blue">Set New Password</h2>
+                <p class="text-sm text-gray-400 mb-4">You arrived here via a reset link.</p>
+                <input type="password" id="new-pwd" class="neon-input w-full p-3 mb-2 rounded-lg" placeholder="New Password">
+                <input type="password" id="confirm-pwd" class="neon-input w-full p-3 mb-4 rounded-lg" placeholder="Confirm Password">
+                <button onclick="handleReset('${resetToken}')" class="w-full bg-gradient-to-r from-neon-blue to-cyan-500 text-black p-3 rounded-lg font-bold hover:shadow-neon-blue transition-all">Reset Password</button>
+                <p class="text-center text-gray-400 text-sm mt-4">
+                  <a href="${window.location.pathname}" class="text-gray-300 hover:text-neon-blue transition-colors">Go to Login</a>
+                </p>
+              </div>
             </div>
           `;
+          return;
+        }
 
-          const files = await apiCall(`/files?userId=${currentUser.id}`);
-          allFiles = files;
+        if (token) {
+          document.getElementById('auth-view').classList.add('hidden-section');
+          document
+            .getElementById('dashboard-view')
+            .classList.remove('hidden-section');
+          document.getElementById('user-email-display').innerText =
+            userEmail || 'User';
+          document.getElementById('settings-email').innerText =
+            userEmail || 'User';
+          switchDashboardSection('overview');
+          loadFiles();
+        } else {
+          document
+            .getElementById('auth-view')
+            .classList.remove('hidden-section');
+          document
+            .getElementById('dashboard-view')
+            .classList.add('hidden-section');
+        }
+      };
 
-          if (files.length === 0) {
-            list.innerHTML = `
-              <div class="col-span-full text-center py-16">
-                <i class="fas fa-file-medical text-6xl text-gray-600 mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-400 mb-2">No Prescriptions Yet</h3>
-                <p class="text-gray-500">Upload your first prescription to get started</p>
+      const toggleAuthMode = (mode) => {
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const forgotForm = document.getElementById('forgot-password-form');
+
+        loginForm.classList.add('hidden-section');
+        signupForm.classList.add('hidden-section');
+        forgotForm.classList.add('hidden-section');
+
+        if (mode === 'login') loginForm.classList.remove('hidden-section');
+        if (mode === 'signup') signupForm.classList.remove('hidden-section');
+      };
+
+      const showSection = (id) => {
+        document.getElementById('login-form').classList.add('hidden-section');
+        document.getElementById('signup-form').classList.add('hidden-section');
+        document
+          .getElementById('forgot-password-form')
+          .classList.add('hidden-section');
+        document.getElementById(id).classList.remove('hidden-section');
+      };
+
+      const handleReset = async (token) => {
+        const password = document.getElementById('new-pwd').value;
+        const confirmPassword = document.getElementById('confirm-pwd').value;
+
+        if (password !== confirmPassword) {
+          return showToast('Passwords do not match.', 'error');
+        }
+
+        try {
+          await apiRequest('/auth/reset-password', 'POST', {
+            token,
+            password,
+            confirmPassword,
+          });
+          showToast(
+            'Password reset successfully. You will now be redirected to login.',
+            'success',
+          );
+          setTimeout(() => {
+            window.location.href = window.location.pathname; // Remove token from URL and go to login
+          }, 3000);
+        } catch (e) {
+          console.error(e);
+          showToast('Failed to reset password: ' + e.message, 'error');
+        }
+      };
+
+      // Auth event listeners
+      document
+        .getElementById('login-form')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('login-email').value;
+          const password = document.getElementById('login-password').value;
+          try {
+            const res = await apiRequest('/auth/login', 'POST', {
+              email,
+              password,
+            });
+            localStorage.setItem('token', res.token);
+            localStorage.setItem('userId', res.id);
+            localStorage.setItem('userEmail', res.email);
+            showToast('Login successful!');
+            checkAuth();
+          } catch (err) {}
+        });
+
+      document
+        .getElementById('signup-form')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('signup-email').value;
+          const password = document.getElementById('signup-password').value;
+          try {
+            const res = await apiRequest('/auth/signup', 'POST', {
+              email,
+              password,
+            });
+            localStorage.setItem('token', res.token);
+            localStorage.setItem('userId', res.id);
+            localStorage.setItem('userEmail', res.email);
+            showToast('Account created!');
+            checkAuth();
+          } catch (err) {}
+        });
+
+      // === NEW: Forgot Password form handler ===
+      document
+        .getElementById('forgot-password-form')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('forgot-email').value;
+          const sendLinkBtn = document.getElementById('send-reset-link-btn');
+          const resetLinkDisplay =
+            document.getElementById('reset-link-display');
+          const resetLinkTextarea = document.getElementById(
+            'reset-link-textarea',
+          );
+
+          sendLinkBtn.disabled = true;
+          sendLinkBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
+          resetLinkDisplay.classList.add('hidden'); // Hide previous link if any
+
+          try {
+            const res = await apiRequest('/auth/forgot-password', 'POST', {
+              email,
+            });
+            showToast(res.message, 'success');
+
+            if (res.resetLink) {
+              resetLinkTextarea.value = res.resetLink;
+              resetLinkDisplay.classList.remove('hidden');
+              // Optionally, automatically select the text for easy copying
+              resetLinkTextarea.select();
+            }
+
+            setTimeout(() => {
+              showSection('login-form'); // Go back to login after showing the link/message
+            }, 5000); // 5 seconds
+          } catch (err) {
+            showToast(err.message, 'error');
+          } finally {
+            sendLinkBtn.disabled = false;
+            sendLinkBtn.innerHTML = 'SEND LINK';
+          }
+        });
+      // === END NEW ===
+
+      // ================= DASHBOARD FUNCTIONS =================
+      const toggleMobileSidebar = () => {
+        document.getElementById('mobile-sidebar').classList.toggle('open');
+        document
+          .getElementById('mobile-sidebar-backdrop')
+          .classList.toggle('hidden');
+      };
+
+      const switchDashboardSection = (section, isMobile = false) => {
+        // Hide all sections
+        ['overview', 'files', 'doctors', 'analytics', 'settings'].forEach(
+          (sec) => {
+            document
+              .getElementById(`${sec}-section`)
+              .classList.add('hidden-section');
+          },
+        );
+
+        // Show selected section
+        document
+          .getElementById(`${section}-section`)
+          .classList.remove('hidden-section');
+
+        // Update Header Title
+        const titleMap = {
+          overview: 'Dashboard Overview',
+          files: 'Prescriptions',
+          doctors: 'Doctors & Clinics',
+          analytics: 'Analytics',
+          settings: 'User Settings',
+        };
+        document.getElementById('main-content-title').innerText =
+          titleMap[section];
+
+        // Update navigation links
+        document
+          .querySelectorAll('.nav-link, .nav-link-mobile')
+          .forEach((link) => {
+            link.classList.remove(
+              'bg-gray-800/50',
+              'text-neon-blue',
+              'border-r-2',
+              'border-neon-blue',
+            );
+            link.classList.add('text-gray-400', 'hover:bg-gray-800');
+          });
+
+        const colorMap = {
+          overview: 'blue',
+          files: 'blue',
+          doctors: 'green',
+          analytics: 'pink',
+          settings: 'purple',
+        };
+
+        const activeLink = document.getElementById(`nav-${section}`);
+        if (activeLink) {
+          activeLink.classList.remove('text-gray-400', 'hover:bg-gray-800');
+          activeLink.classList.add(
+            'bg-gray-800/50',
+            `text-neon-${colorMap[section]}`,
+            'border-r-2',
+            `border-neon-${colorMap[section]}`,
+          );
+        }
+
+        const activeMobileLink = document.getElementById(
+          `mobile-nav-${section}`,
+        );
+        if (activeMobileLink) {
+          activeMobileLink.classList.remove(
+            'text-gray-400',
+            'hover:bg-gray-800',
+          );
+          activeMobileLink.classList.add(
+            'bg-gray-800/50',
+            `text-neon-${colorMap[section]}`,
+            'border-r-2',
+            `border-neon-${colorMap[section]}`,
+          );
+        }
+
+        // Load analytics if needed
+        if (section === 'analytics') {
+          renderAnalytics();
+        }
+        // Load doctors list if needed
+        if (section === 'doctors') {
+          renderDoctorsList();
+        }
+
+        if (isMobile) {
+          toggleMobileSidebar();
+        }
+      };
+
+      const updateStorageDisplay = () => {
+        const totalBytes = allFiles.reduce(
+          (sum, file) => sum + (file.size || 0),
+          0,
+        );
+        const usedMB = (totalBytes / (1024 * 1024)).toFixed(2);
+        const freeMB = (STORAGE_LIMIT / (1024 * 1024) - usedMB).toFixed(2);
+        const percentage = (totalBytes / STORAGE_LIMIT) * 100;
+
+        // Ensure percentage doesn't exceed 100 or go below 0
+        const displayPercentage = Math.max(0, Math.min(100, percentage));
+
+        // Update overview storage
+        document.getElementById('storage-used').textContent = `${usedMB} MB`;
+        document.getElementById(
+          'storage-fill',
+        ).style.width = `${displayPercentage}%`;
+
+        // Update sidebar storage
+        document.getElementById(
+          'sidebar-storage-used',
+        ).textContent = `${usedMB} MB / ${formatBytes(STORAGE_LIMIT, 0)}`;
+        document.getElementById(
+          'sidebar-storage-fill',
+        ).style.width = `${displayPercentage}%`;
+        document.getElementById(
+          'sidebar-storage-free',
+        ).textContent = `${freeMB} MB`;
+
+        // Update settings storage
+        document.getElementById(
+          'settings-storage-fill',
+        ).style.width = `${displayPercentage}%`;
+
+        // Update file stats
+        document.getElementById('storage-total-files').textContent =
+          allFiles.length;
+
+        const avgSize = allFiles.length > 0 ? totalBytes / allFiles.length : 0;
+        document.getElementById('storage-avg-size').textContent = formatBytes(
+          avgSize,
+          1,
+        );
+
+        // Update recent upload
+        if (allFiles.length > 0) {
+          const recent = allFiles.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+          )[0];
+          document.getElementById('recent-upload').textContent = `${
+            recent.doctor
+          } - ${formatDate(recent.date)}`;
+        } else {
+          document.getElementById('recent-upload').textContent = 'No files yet';
+        }
+      };
+
+      const renderFiles = (files = allFiles) => {
+        const container = document.getElementById('files-container');
+
+        if (currentViewMode === 'list') {
+          container.className = 'space-y-4';
+        } else {
+          container.className =
+            'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start';
+        }
+
+        if (files.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center text-gray-500 mt-10 py-12">
+              <i class="fas fa-box-open text-5xl mb-4 opacity-50"></i>
+              <p class="text-lg mb-2">No prescriptions found</p>
+              <p class="text-sm text-gray-600">Click 'Upload' to add your first prescription</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+        files.forEach((file) => {
+          const isImage =
+            file.contentType && file.contentType.startsWith('image');
+          const isPDF = file.contentType === 'application/pdf';
+          const icon = isImage
+            ? 'fa-file-image'
+            : isPDF
+            ? 'fa-file-pdf'
+            : 'fa-file-alt';
+          const fileSize = file.size ? formatBytes(file.size, 1) : 'N/A';
+
+          if (currentViewMode === 'list') {
+            const card = document.createElement('div');
+            card.className =
+              'bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-neon-blue transition-all flex items-center gap-4';
+            card.innerHTML = `
+              <div class="bg-gray-800 p-3 rounded-lg text-neon-blue">
+                <i class="fas ${icon} text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-white truncate">${file.doctor}</h3>
+                <p class="text-xs text-gray-400">${file.date} • ${fileSize}</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="previewFile('${file.id}')" class="p-2 text-gray-400 hover:text-neon-blue hover:bg-gray-800 rounded-lg tooltip" data-tooltip="Preview">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <a href="${API_URL}/file/${file.id}" download="${file.filename}" target="_blank" class="p-2 text-gray-400 hover:text-neon-green hover:bg-gray-800 rounded-lg tooltip" data-tooltip="Download">
+                  <i class="fas fa-download"></i>
+                </a>
+                <button onclick="openEditModal('${file.id}', '${file.doctor}', '${file.date}')" class="p-2 text-gray-400 hover:text-neon-purple hover:bg-gray-800 rounded-lg tooltip" data-tooltip="Edit">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="deleteFile('${file.id}')" class="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-800 rounded-lg tooltip" data-tooltip="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
               </div>
             `;
-            updateStats(files);
-            return;
-          }
+            container.appendChild(card);
+          } else {
+            const card = document.createElement('div');
+            card.className =
+              'bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-neon-blue hover:shadow-neon-blue transition-all duration-300 group relative flex flex-col h-64';
+            card.innerHTML = `
+              <div class="flex items-start justify-between mb-2">
+                <div class="bg-gray-800 p-2 rounded-lg text-neon-blue group-hover:bg-neon-blue group-hover:text-black transition-colors">
+                  <i class="fas ${icon} text-xl"></i>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="openEditModal('${file.id}', '${file.doctor}', '${file.date}')" class="text-gray-500 hover:text-neon-purple p-1 tooltip" data-tooltip="Edit"><i class="fas fa-edit"></i></button>
+                  <button onclick="deleteFile('${file.id}')" class="text-gray-500 hover:text-red-500 p-1 tooltip" data-tooltip="Delete"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>
+              <h3 class="text-white font-semibold truncate mb-1" title="${file.filename}">${file.doctor}</h3>
+              <p class="text-xs text-gray-400 mb-2">${file.date}</p>
+              <p class="text-xs text-gray-500 mb-4">${fileSize}</p>
 
-          updateStats(files);
-          renderFiles(files);
-          updateFilters(files);
+              <div class="mt-auto flex gap-2">
+                <button onclick="previewFile('${file.id}')" class="flex-1 text-center bg-gray-800 hover:bg-neon-blue text-neon-blue hover:text-black py-2 rounded text-xs font-bold transition-all border border-neon-blue hover:border-transparent">
+                  <i class="fas fa-eye"></i> PREVIEW
+                </button>
+                <a href="${API_URL}/file/${file.id}" download="${file.filename}" target="_blank" class="flex-1 text-center bg-gray-800 hover:bg-neon-green text-neon-green hover:text-black py-2 rounded text-xs font-bold transition-all border border-neon-green hover:border-transparent">
+                  <i class="fas fa-download"></i> DOWNLOAD
+                </a>
+              </div>
+            `;
+            container.appendChild(card);
+          }
+        });
+      };
+
+      const toggleViewMode = () => {
+        currentViewMode = currentViewMode === 'grid' ? 'list' : 'grid';
+        document.getElementById('view-toggle-icon').className =
+          currentViewMode === 'grid' ? 'fas fa-list' : 'fas fa-th-large';
+        renderFiles();
+      };
+
+      const sortFiles = () => {
+        const sortBy = document.getElementById('sort-select').value;
+        let sortedFiles = [...allFiles];
+
+        switch (sortBy) {
+          case 'date-desc':
+            sortedFiles.sort((a, b) => new Date(b.date) - new Date(a.date));
+            break;
+          case 'date-asc':
+            sortedFiles.sort((a, b) => new Date(a.date) - new Date(b.date));
+            break;
+          case 'name-asc':
+            sortedFiles.sort((a, b) => a.doctor.localeCompare(b.doctor));
+            break;
+          case 'name-desc':
+            sortedFiles.sort((a, b) => b.doctor.localeCompare(a.doctor));
+            break;
+          case 'size-desc':
+            sortedFiles.sort((a, b) => (b.size || 0) - (a.size || 0));
+            break;
+          case 'size-asc':
+            sortedFiles.sort((a, b) => (a.size || 0) - (b.size || 0));
+            break;
+        }
+
+        renderFiles(sortedFiles);
+      };
+
+      // ================= PREVIEW FUNCTIONALITY =================
+      const previewFile = async (fileId) => {
+        const file = allFiles.find((f) => f.id === fileId);
+        if (!file) return;
+
+        currentPreviewFile = file;
+        currentRotation = 0;
+        currentZoom = 1;
+        currentPage = 1;
+        pdfDoc = null;
+
+        document.getElementById('preview-title').textContent = file.filename;
+        document.getElementById('preview-doctor').textContent = file.doctor;
+        document.getElementById('preview-date').textContent = formatDate(
+          file.date,
+        );
+        document.getElementById('preview-size').textContent = file.size
+          ? formatBytes(file.size)
+          : 'N/A';
+        document.getElementById(
+          'preview-download-btn',
+        ).href = `${API_URL}/file/${file.id}`;
+        document.getElementById('preview-download-btn').download =
+          file.filename;
+
+        const previewContent = document.getElementById('preview-content');
+        previewContent.innerHTML = `
+          <div class="flex items-center justify-center h-64">
+            <i class="fas fa-spinner fa-spin text-4xl text-neon-blue"></i>
+            <span class="ml-4">Loading preview...</span>
+          </div>
+        `;
+
+        document
+          .getElementById('preview-modal')
+          .classList.remove('hidden-section');
+
+        try {
+          const response = await fetch(`${API_URL}/file/${file.id}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+
+          if (file.contentType === 'application/pdf') {
+            await renderPDF(url, previewContent);
+            document
+              .getElementById('preview-pdf-controls')
+              .classList.remove('hidden');
+          } else if (file.contentType.startsWith('image')) {
+            renderImage(url, previewContent);
+            document
+              .getElementById('preview-pdf-controls')
+              .classList.add('hidden');
+          } else {
+            previewContent.innerHTML = `
+              <div class="text-center py-12">
+                <i class="fas fa-file text-5xl text-gray-600 mb-4"></i>
+                <p class="text-gray-400">Preview not available for this file type</p>
+                <a href="${url}" download="${file.filename}" target="_blank" class="inline-block mt-4 px-4 py-2 bg-neon-blue text-black rounded-lg font-semibold">
+                  <i class="fas fa-download mr-2"></i>Download File
+                </a>
+              </div>
+            `;
+            document
+              .getElementById('preview-pdf-controls')
+              .classList.add('hidden');
+          }
         } catch (error) {
-          list.innerHTML = `
-            <div class="col-span-full text-center py-8 text-red-400">
-              <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
-              <p>Error loading prescriptions: ${error.message}</p>
-              <button onclick="listFiles()" class="mt-4 gradient-bg hover:opacity-90 text-white px-4 py-2 rounded-lg">
-                Try Again
+          console.error('Failed to load preview:', error);
+          previewContent.innerHTML = `
+            <div class="text-center py-12">
+              <i class="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
+              <p class="text-gray-400">Failed to load preview. Please check the file or server.</p>
+            </div>
+          `;
+          document
+            .getElementById('preview-pdf-controls')
+            .classList.add('hidden');
+        }
+      };
+
+      const renderImage = (url, container) => {
+        container.innerHTML = `
+          <div class="flex justify-center">
+            <img id="preview-image" src="${url}" alt="Preview"
+                 class="max-w-full max-h-[60vh] object-contain transition-transform duration-200"
+                 style="transform: rotate(${currentRotation}deg) scale(${currentZoom})">
+          </div>
+        `;
+      };
+
+      const renderPDF = async (url, container) => {
+        try {
+          // Worker source is required for PDF.js
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+          const loadingTask = pdfjsLib.getDocument(url);
+          pdfDoc = await loadingTask.promise;
+
+          const page = await pdfDoc.getPage(currentPage);
+          const scale = 1.5 * currentZoom;
+          const viewport = page.getViewport({
+            scale,
+            rotation: currentRotation,
+          }); // Apply rotation to viewport
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          canvas.className = 'pdf-canvas';
+
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+          };
+
+          await page.render(renderContext).promise;
+
+          container.innerHTML = '';
+          container.appendChild(canvas);
+
+          document.getElementById(
+            'page-info',
+          ).textContent = `Page ${currentPage} of ${pdfDoc.numPages}`;
+        } catch (error) {
+          console.error('Error rendering PDF:', error);
+          container.innerHTML = `
+            <div class="text-center py-12">
+              <i class="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
+              <p class="text-gray-400">Failed to load PDF</p>
+            </div>
+          `;
+        }
+      };
+
+      const rotatePreview = async (degrees) => {
+        currentRotation = (currentRotation + degrees + 360) % 360; // Keep rotation between 0-360
+        const image = document.getElementById('preview-image');
+        if (image) {
+          image.style.transform = `rotate(${currentRotation}deg) scale(${currentZoom})`;
+        }
+        if (pdfDoc && currentPreviewFile) {
+          const blob = await fetch(
+            `${API_URL}/file/${currentPreviewFile.id}`,
+          ).then((r) => r.blob());
+          const url = URL.createObjectURL(blob);
+          await renderPDF(url, document.getElementById('preview-content'));
+        }
+      };
+
+      const zoomPreviewIn = async () => {
+        // Made async
+        currentZoom = Math.min(currentZoom + 0.25, 3);
+        await updatePreviewTransform(); // Await
+      };
+
+      const zoomPreviewOut = async () => {
+        // Made async
+        currentZoom = Math.max(currentZoom - 0.25, 0.5);
+        await updatePreviewTransform(); // Await
+      };
+
+      const updatePreviewTransform = async () => {
+        // Made async
+        const image = document.getElementById('preview-image');
+        if (image) {
+          image.style.transform = `rotate(${currentRotation}deg) scale(${currentZoom})`;
+        }
+        if (pdfDoc && currentPreviewFile) {
+          // Added currentPreviewFile check
+          const blob = await fetch(
+            `${API_URL}/file/${currentPreviewFile.id}`,
+          ).then((r) => r.blob());
+          const url = URL.createObjectURL(blob);
+          await renderPDF(url, document.getElementById('preview-content')); // Await renderPDF
+        }
+      };
+
+      const prevPage = async () => {
+        // Made async
+        if (pdfDoc && currentPage > 1) {
+          currentPage--;
+          const blob = await fetch(
+            `${API_URL}/file/${currentPreviewFile.id}`,
+          ).then((r) => r.blob());
+          const url = URL.createObjectURL(blob);
+          await renderPDF(url, document.getElementById('preview-content'));
+        }
+      };
+
+      const nextPage = async () => {
+        // Made async
+        if (pdfDoc && currentPage < pdfDoc.numPages) {
+          currentPage++;
+          const blob = await fetch(
+            `${API_URL}/file/${currentPreviewFile.id}`,
+          ).then((r) => r.blob());
+          const url = URL.createObjectURL(blob);
+          await renderPDF(url, document.getElementById('preview-content'));
+        }
+      };
+
+      // ================= DOCTORS LIST =================
+      const renderDoctorsList = () => {
+        const container = document.getElementById('doctors-list-container');
+
+        if (allFiles.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center text-gray-500 mt-10 py-12">
+              <i class="fas fa-user-md-slash text-5xl mb-4 opacity-50"></i>
+              <p>No doctors found yet. Upload a prescription to see them here!</p>
+            </div>
+          `;
+          return;
+        }
+
+        const doctorCounts = allFiles.reduce((acc, file) => {
+          acc[file.doctor] = (acc[file.doctor] || 0) + 1;
+          return acc;
+        }, {});
+
+        const sortedDoctors = Object.entries(doctorCounts).sort(
+          (a, b) => b[1] - a[1],
+        );
+
+        container.innerHTML = '';
+        sortedDoctors.forEach(([doctor, count]) => {
+          const card = document.createElement('div');
+          card.className =
+            'bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-neon-green hover:shadow-neon-green transition-all duration-300';
+          card.innerHTML = `
+            <div class="flex items-center gap-4">
+              <div class="p-4 bg-neon-green/20 rounded-full text-neon-green text-2xl">
+                <i class="fas fa-user-md"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="text-white font-semibold text-lg">${doctor}</h4>
+                <p class="text-gray-400 text-sm">${count} Prescription${
+            count === 1 ? '' : 's'
+          }</p>
+              </div>
+              <button onclick="filterByDoctor('${doctor}')" class="text-gray-400 hover:text-neon-blue tooltip" data-tooltip="View prescriptions by ${doctor}">
+                <i class="fas fa-filter"></i>
               </button>
             </div>
           `;
-        }
-      }
-
-      function updateStats(files) {
-        document.getElementById('totalPrescriptions').textContent =
-          files.length;
-
-        const doctors = [
-          ...new Set(files.map((f) => f.doctor).filter(Boolean)),
-        ];
-        document.getElementById('totalDoctors').textContent = doctors.length;
-
-        const now = new Date();
-        const thisMonthFiles = files.filter((f) => {
-          const fileDate = new Date(f.date);
-          return (
-            fileDate.getMonth() === now.getMonth() &&
-            fileDate.getFullYear() === now.getFullYear()
-          );
+          container.appendChild(card);
         });
-        document.getElementById('monthPrescriptions').textContent =
-          thisMonthFiles.length;
-      }
+      };
 
-      function renderFiles(files) {
-        const list = document.getElementById('list');
+      const filterByDoctor = (doctorName) => {
+        document.getElementById('search-input').value = doctorName;
+        // Trigger search functionality which calls renderFiles with filtered data
+        document
+          .getElementById('search-input')
+          .dispatchEvent(new Event('input'));
+        switchDashboardSection('files');
+      };
 
-        if (files.length === 0) {
-          list.innerHTML = `
-            <div class="col-span-full text-center py-16">
-              <i class="fas fa-file-medical text-6xl text-gray-600 mb-4"></i>
-              <h3 class="text-xl font-semibold text-gray-400 mb-2">No Prescriptions Found</h3>
-              <p class="text-gray-500">Try adjusting your search or upload a new prescription</p>
+      // ================= ANALYTICS =================
+      const renderAnalytics = () => {
+        // Update file statistics
+        const images = allFiles.filter(
+          (f) => f.contentType && f.contentType.startsWith('image'),
+        ).length;
+        const pdfs = allFiles.filter(
+          (f) => f.contentType === 'application/pdf',
+        ).length;
+        const other = allFiles.length - images - pdfs;
+
+        document.getElementById('stats-total-files').textContent =
+          allFiles.length;
+        document.getElementById('stats-images').textContent = images;
+        document.getElementById('stats-pdfs').textContent = pdfs;
+        document.getElementById('stats-other').textContent = other;
+
+        // Simple storage chart
+        const storageChart = document.getElementById('storage-chart');
+        const totalBytes = allFiles.reduce(
+          (sum, file) => sum + (file.size || 0),
+          0,
+        );
+        const imageBytes = allFiles
+          .filter((f) => f.contentType && f.contentType.startsWith('image'))
+          .reduce((sum, file) => sum + (file.size || 0), 0);
+        const pdfBytes = allFiles
+          .filter((f) => f.contentType === 'application/pdf')
+          .reduce((sum, file) => sum + (file.size || 0), 0);
+        const otherBytes = totalBytes - imageBytes - pdfBytes;
+
+        // Prevent division by zero if totalBytes is 0
+        const imageHeight =
+          totalBytes > 0 ? (imageBytes / totalBytes) * 100 : 0;
+        const pdfHeight = totalBytes > 0 ? (pdfBytes / totalBytes) * 100 : 0;
+        const otherHeight =
+          totalBytes > 0 ? (otherBytes / totalBytes) * 100 : 0;
+
+        storageChart.innerHTML = `
+          <div class="w-full h-full flex flex-col justify-center">
+            <div class="flex items-center justify-center gap-4 mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-neon-blue rounded-full"></div>
+                <span class="text-xs">Images: ${formatBytes(imageBytes)}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-neon-purple rounded-full"></div>
+                <span class="text-xs">PDFs: ${formatBytes(pdfBytes)}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-gray-600 rounded-full"></div>
+                <span class="text-xs">Other: ${formatBytes(otherBytes)}</span>
+              </div>
             </div>
-          `;
+            <div class="flex h-32 items-end justify-center gap-1">
+              <div class="w-16 bg-neon-blue rounded-t" style="height: ${imageHeight}%"></div>
+              <div class="w-16 bg-neon-purple rounded-t" style="height: ${pdfHeight}%"></div>
+              <div class="w-16 bg-gray-600 rounded-t" style="height: ${otherHeight}%"></div>
+            </div>
+          </div>
+        `;
+
+        // Simple activity chart (last 7 days)
+        const activityChart = document.getElementById('activity-chart');
+        const last7Days = Array.from({ length: 7 }, (_, i) => {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          return date.toISOString().split('T')[0];
+        }).reverse(); // Most recent day last
+
+        const dailyCounts = last7Days.map((date) => {
+          return allFiles.filter((f) => f.date === date).length;
+        });
+
+        const maxCount = Math.max(...dailyCounts, 1); // Ensure maxCount is at least 1 to avoid division by zero
+
+        activityChart.innerHTML = `
+          <div class="w-full h-full flex items-end justify-between p-2">
+              ${last7Days
+                .map(
+                  (date, i) => `
+                <div class="flex flex-col items-center flex-1">
+                  <div class="w-8 bg-neon-pink rounded-t mb-1"
+                       style="height: ${
+                         (dailyCounts[i] / maxCount) * 80 + 20
+                       }%"></div> <!-- Base height + dynamic part -->
+                  <span class="text-xs text-gray-500">${new Date(
+                    date,
+                  ).getDate()}</span>
+                </div>
+              `,
+                )
+                .join('')}
+          </div>
+        `;
+      };
+
+      // ================= FILE OPERATIONS =================
+      const loadFiles = async () => {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        try {
+          const files = await apiRequest(`/files?userId=${userId}`);
+          allFiles = files;
+          renderFiles(); // Render files with current sort/view
+          updateStorageDisplay();
+          updateDashboardCounts();
+          // renderDoctorsList(); // Only call when doctors section is active
+        } catch (err) {
+          console.error('Load failed', err);
+        }
+      };
+
+      const deleteFile = async (fileId) => {
+        if (!confirm('Are you sure you want to delete this prescription?'))
           return;
-        }
+        try {
+          await apiRequest(`/file/${fileId}`, 'DELETE');
+          showToast('Deleted successfully');
+          loadFiles();
+        } catch (err) {}
+      };
 
-        // Group by doctor
-        const grouped = files.reduce((groups, file) => {
-          const doctor = file.doctor || 'Unknown Doctor';
-          if (!groups[doctor]) groups[doctor] = [];
-          groups[doctor].push(file);
-          return groups;
-        }, {});
+      const clearAllFiles = async () => {
+        if (
+          !confirm(
+            'This will delete ALL your files. This action cannot be undone. Are you sure?',
+          )
+        )
+          return;
+        try {
+          const userId = localStorage.getItem('userId');
+          await apiRequest(`/files/clear?userId=${userId}`, 'DELETE');
+          showToast('All files cleared');
+          loadFiles();
+        } catch (err) {}
+      };
 
-        let html = '';
-        Object.entries(grouped).forEach(([doctor, prescriptions]) => {
-          html += `
-            <div class="col-span-full mb-6">
-              <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
-                <i class="fas fa-user-md mr-2 text-blue-400"></i>${doctor}
-              </h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          `;
+      const openEditModal = (id, doctor, date) => {
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-doctor').value = doctor;
+        document.getElementById('edit-date').value = date;
+        document
+          .getElementById('edit-modal')
+          .classList.remove('hidden-section');
+      };
 
-          prescriptions.forEach((file) => {
-            const date = new Date(file.date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            });
+      // ================= UPLOAD =================
+      const openUploadModal = () => {
+        document
+          .getElementById('upload-modal')
+          .classList.remove('hidden-section');
+        document.getElementById('upload-form').reset();
+        document.getElementById('file-name-display').innerText = '';
+        document.getElementById('upload-date').value = new Date()
+          .toISOString()
+          .split('T')[0];
+      };
 
-            // Determine file type icon
-            let fileIcon = 'fa-file';
-            let fileColor = 'text-blue-400';
-            if (file.contentType?.includes('image')) {
-              fileIcon = 'fa-file-image';
-              fileColor = 'text-green-400';
-            } else if (file.contentType === 'application/pdf') {
-              fileIcon = 'fa-file-pdf';
-              fileColor = 'text-red-400';
-            }
-
-            html += `
-              <div class="bg-gray-700 rounded-xl p-5 card-hover">
-                <div class="flex justify-between items-start mb-4">
-                  <i class="fas ${fileIcon} ${fileColor} text-2xl"></i>
-                  <span class="text-xs bg-gray-600 text-gray-300 px-2 py-1 rounded-full">${
-                    file.contentType?.split('/')[1]?.toUpperCase() || 'FILE'
-                  }</span>
-                </div>
-                <h4 class="text-white font-medium mb-2 truncate">${
-                  file.filename
-                }</h4>
-                <p class="text-gray-400 text-sm mb-4">${date}</p>
-                <div class="flex space-x-2">
-                  <button 
-                    onclick="previewFile('${file.id}', '${file.filename}', '${
-              file.contentType
-            }')" 
-                    class="flex-1 gradient-bg hover:opacity-90 text-white text-center py-2 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
-                  >
-                    <i class="fas fa-eye mr-2"></i> Preview
-                  </button>
-                  <button 
-                    onclick="editFile('${file.id}', '${file.doctor}', '${
-              file.date
-            }')" 
-                    class="bg-yellow-600 hover:bg-yellow-700 text-white p-2 rounded-lg transition-all duration-300 transform hover:scale-105"
-                    title="Edit"
-                  >
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button 
-                    onclick="deleteFile('${file.id}', '${file.filename}')" 
-                    class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-all duration-300 transform hover:scale-105"
-                    title="Delete"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-            `;
-          });
-
-          html += `
-              </div>
-            </div>
-          `;
+      document
+        .getElementById('upload-file')
+        .addEventListener('change', function () {
+          if (this.files[0]) {
+            const fileName = this.files[0].name;
+            const fileSize = this.files[0].size;
+            document.getElementById(
+              'file-name-display',
+            ).innerText = `${fileName} (${formatBytes(fileSize)})`;
+          }
         });
 
-        list.innerHTML = html;
-      }
+      document
+        .getElementById('upload-form')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const userId = localStorage.getItem('userId');
+          const doctor = document.getElementById('upload-doctor').value;
+          const date = document.getElementById('upload-date').value;
+          const fileInput = document.getElementById('upload-file');
 
-      function updateFilters(files) {
-        const doctorFilter = document.getElementById('doctorFilter');
-        const doctors = [
-          ...new Set(files.map((f) => f.doctor).filter(Boolean)),
-        ];
+          if (!fileInput.files[0]) {
+            showToast('Please select a file', 'error');
+            return;
+          }
 
-        // Clear existing options except the first one
-        while (doctorFilter.children.length > 1) {
-          doctorFilter.removeChild(doctorFilter.lastChild);
-        }
+          // Check file size (5MB limit)
+          if (fileInput.files[0].size > 5 * 1024 * 1024) {
+            showToast('File size exceeds 5MB limit', 'error');
+            return;
+          }
 
-        // Add doctor options
-        doctors.forEach((doctor) => {
-          const option = document.createElement('option');
-          option.value = doctor;
-          option.textContent = doctor;
-          doctorFilter.appendChild(option);
+          // Check storage limit
+          const currentStorage = allFiles.reduce(
+            (sum, file) => sum + (file.size || 0),
+            0,
+          );
+          if (currentStorage + fileInput.files[0].size > STORAGE_LIMIT) {
+            showToast(
+              'Storage limit exceeded. Please delete some files first.',
+              'error',
+            );
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('userId', userId);
+          formData.append('doctor', doctor);
+          formData.append('date', date);
+          formData.append('file', fileInput.files[0]);
+
+          try {
+            await apiRequest('/upload', 'POST', formData, true);
+            showToast('File uploaded successfully');
+            closeModal('upload-modal');
+            loadFiles();
+          } catch (err) {}
         });
-      }
 
-      function filterPrescriptions() {
-        const searchTerm = document
-          .getElementById('searchInput')
-          .value.toLowerCase();
-        const selectedDoctor = document.getElementById('doctorFilter').value;
-        const dateFilter = document.getElementById('dateFilter').value;
+      document
+        .getElementById('edit-form')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const id = document.getElementById('edit-id').value;
+          const doctor = document.getElementById('edit-doctor').value;
+          const date = document.getElementById('edit-date').value;
 
-        let filteredFiles = allFiles;
+          try {
+            await apiRequest(`/file/${id}`, 'PUT', { doctor, date });
+            showToast('Updated successfully');
+            closeModal('edit-modal');
+            loadFiles();
+          } catch (err) {}
+        });
 
-        // Filter by search term
-        if (searchTerm) {
-          filteredFiles = filteredFiles.filter(
-            (file) =>
-              file.filename.toLowerCase().includes(searchTerm) ||
-              file.doctor.toLowerCase().includes(searchTerm) ||
-              file.date.includes(searchTerm),
-          );
-        }
+      // ================= UTILITY FUNCTIONS =================
+      const updateDashboardCounts = () => {
+        document.getElementById('total-prescriptions-count').textContent =
+          allFiles.length;
+        const uniqueDoctors = new Set(allFiles.map((f) => f.doctor)).size;
+        document.getElementById('total-doctors-count').textContent =
+          uniqueDoctors;
+      };
 
-        // Filter by doctor
-        if (selectedDoctor) {
-          filteredFiles = filteredFiles.filter(
-            (file) => file.doctor === selectedDoctor,
-          );
-        }
+      const refreshDashboard = () => {
+        showToast('Refreshing data...', 'success');
+        loadFiles();
+      };
 
-        // Filter by date
-        if (dateFilter) {
-          const now = new Date();
-          filteredFiles = filteredFiles.filter((file) => {
-            const fileDate = new Date(file.date);
+      const clearFilters = () => {
+        document.getElementById('search-input').value = '';
+        document.getElementById('sort-select').value = 'date-desc';
+        renderFiles();
+        showToast('Filters cleared', 'success');
+      };
 
-            switch (dateFilter) {
-              case 'today':
-                return fileDate.toDateString() === now.toDateString();
-              case 'week':
-                const weekAgo = new Date(
-                  now.getTime() - 7 * 24 * 60 * 60 * 1000,
-                );
-                return fileDate >= weekAgo;
-              case 'month':
-                return (
-                  fileDate.getMonth() === now.getMonth() &&
-                  fileDate.getFullYear() === now.getFullYear()
-                );
-              case 'year':
-                return fileDate.getFullYear() === now.getFullYear();
-              default:
-                return true;
-            }
-          });
-        }
-
-        renderFiles(filteredFiles);
-      }
-
-      function clearFilters() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('doctorFilter').value = '';
-        document.getElementById('dateFilter').value = '';
-        renderFiles(allFiles);
-      }
-
-      function toggleViewMode() {
-        // This would toggle between grid and list view
-        showToast('View toggle functionality would go here', 'info');
-      }
-
-      // Preview file function
-      function previewFile(fileId, fileName, contentType) {
-        currentFileForPreview = fileId;
-        const modal = document.getElementById('previewModal');
-        const title = document.getElementById('previewTitle');
-        const content = document.getElementById('previewContent');
-        const downloadBtn = document.getElementById('downloadPreviewBtn');
-
-        title.textContent = `Preview: ${fileName}`;
-
-        // Set up download button
-        downloadBtn.onclick = () => {
-          window.open(`${API_BASE}/file/${fileId}`, '_blank');
+      const exportData = () => {
+        const data = {
+          user: localStorage.getItem('userEmail'),
+          exportDate: new Date().toISOString(),
+          totalFiles: allFiles.length,
+          files: allFiles.map((f) => ({
+            doctor: f.doctor,
+            date: f.date,
+            filename: f.filename,
+            size: f.size ? formatBytes(f.size) : 'N/A',
+            type: f.contentType,
+          })),
         };
 
-        // Check if it's an image or PDF
-        if (contentType.includes('image')) {
-          content.innerHTML = `
-            <img src="${API_BASE}/file/${fileId}" alt="${fileName}" class="preview-image rounded-lg shadow-lg max-w-full h-auto">
-          `;
-        } else if (contentType === 'application/pdf') {
-          content.innerHTML = `
-            <div class="w-full h-96">
-              <iframe src="${API_BASE}/file/${fileId}" class="w-full h-full rounded-lg shadow-lg" frameborder="0"></iframe>
-            </div>
-          `;
-        } else {
-          content.innerHTML = `
-            <div class="text-center">
-              <i class="fas fa-file text-6xl text-gray-500 mb-4"></i>
-              <p class="text-gray-400">Preview not available for this file type</p>
-              <p class="text-gray-500 text-sm mt-2">Please download the file to view it</p>
-            </div>
-          `;
-        }
+        const dataStr = JSON.stringify(data, null, 2);
+        const dataUri =
+          'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        const exportFileDefaultName = `neonrx-export-${
+          new Date().toISOString().split('T')[0]
+        }.json`;
 
-        modal.classList.remove('hidden');
-      }
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
 
-      // Close preview modal
-      function closePreview() {
-        document.getElementById('previewModal').classList.add('hidden');
-        currentFileForPreview = null;
-      }
+        showToast('Data exported successfully', 'success');
+      };
 
-      // Edit file function
-      function editFile(fileId, doctor, date) {
-        currentFileForEdit = fileId;
-        const modal = document.getElementById('editModal');
-        const docnameInput = document.getElementById('editDocname');
-        const dateInput = document.getElementById('editDate');
-        const saveBtn = document.getElementById('saveEditBtn');
+      const showHelp = () => {
+        document
+          .getElementById('help-modal')
+          .classList.remove('hidden-section');
+      };
 
-        docnameInput.value = doctor || '';
-        dateInput.value = date || '';
+      const closeModal = (id) => {
+        document.getElementById(id).classList.add('hidden-section');
+      };
 
-        // Set up save button
-        saveBtn.onclick = saveFileEdit;
+      const logout = () => {
+        localStorage.clear();
+        checkAuth();
+      };
 
-        modal.classList.remove('hidden');
-      }
-
-      // Save file edit
-      async function saveFileEdit() {
-        if (!currentFileForEdit) return;
-
-        const docname = document.getElementById('editDocname').value;
-        const date = document.getElementById('editDate').value;
-
-        if (!docname || !date) {
-          showToast('Please enter both doctor name and date', 'error');
-          return;
-        }
-
-        showLoading(true);
-
-        try {
-          await apiCall(`/file/${currentFileForEdit}`, {
-            method: 'PUT',
-            body: JSON.stringify({ doctor: docname, date }),
-          });
-
-          showToast('Prescription updated successfully!', 'success');
-          closeEditModal();
-          listFiles();
-        } catch (error) {
-          showToast('Failed to update prescription: ' + error.message, 'error');
-        } finally {
-          showLoading(false);
-        }
-      }
-
-      // Close edit modal
-      function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
-        currentFileForEdit = null;
-      }
-
-      // Delete file function
-      function deleteFile(fileId, fileName) {
-        currentFileForDelete = fileId;
-        const modal = document.getElementById('deleteModal');
-        const fileNameElement = document.getElementById('deleteFileName');
-        const confirmBtn = document.getElementById('confirmDeleteBtn');
-
-        fileNameElement.textContent = `File: ${fileName}`;
-
-        // Set up confirm button
-        confirmBtn.onclick = confirmFileDelete;
-
-        modal.classList.remove('hidden');
-      }
-
-      // Confirm file deletion
-      async function confirmFileDelete() {
-        if (!currentFileForDelete) return;
-
-        showLoading(true);
-
-        try {
-          await apiCall(`/file/${currentFileForDelete}`, {
-            method: 'DELETE',
-          });
-
-          showToast('Prescription deleted successfully!', 'success');
-          closeDeleteModal();
-          listFiles();
-        } catch (error) {
-          showToast('Failed to delete prescription: ' + error.message, 'error');
-        } finally {
-          showLoading(false);
-        }
-      }
-
-      // Close delete modal
-      function closeDeleteModal() {
-        document.getElementById('deleteModal').classList.add('hidden');
-        currentFileForDelete = null;
-      }
-
-      // Initialize the app
-      document.addEventListener('DOMContentLoaded', () => {
-        setupFileDropZone();
-
-        // Restore UI state on page load
-        restoreUIState();
-
-        // Enter key support for forms
-        ['regEmail', 'regPassword', 'confirmPassword'].forEach((id) => {
-          document.getElementById(id)?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') register();
-          });
-        });
-
-        ['loginEmail', 'loginPassword'].forEach((id) => {
-          document.getElementById(id)?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
-          });
-        });
-
-        // Close modals when clicking outside
-        document.addEventListener('click', (e) => {
-          if (e.target.id === 'previewModal') closePreview();
-          if (e.target.id === 'editModal') closeEditModal();
-          if (e.target.id === 'deleteModal') closeDeleteModal();
-          if (e.target.id === 'uploadModal') closeUploadModal();
-        });
+      // ================= INITIALIZATION =================
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allFiles.filter(
+          (f) =>
+            f.doctor.toLowerCase().includes(term) ||
+            f.date.includes(term) ||
+            f.filename.toLowerCase().includes(term),
+        );
+        renderFiles(filtered);
       });
+
+      // Initialize
+      checkAuth();
     </script>
   </body>
 </html>
