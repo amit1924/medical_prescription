@@ -701,7 +701,7 @@
             </div>
 
             <!-- Quick Actions -->
-            <div class="mt-8">
+            <div class="mt-9 mb-5">
               <h4 class="text-lg font-semibold text-white mb-4">
                 Quick Actions
               </h4>
@@ -740,7 +740,7 @@
 
           <!-- Files Section -->
           <div id="files-section" class="hidden-section">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
               <h3 class="text-2xl font-bold text-neon-blue">
                 <i class="fas fa-folder-open mr-2"></i> All Prescriptions
               </h3>
@@ -768,7 +768,7 @@
             </div>
             <div
               id="files-container"
-              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start"
+              class="h-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start"
             >
               <div class="text-center col-span-full mt-20 text-gray-500">
                 <i
@@ -1553,25 +1553,52 @@
             const res = await apiRequest('/auth/forgot-password', 'POST', {
               email,
             });
-            showToast(res.message, 'success');
-
+            console.log(res);
+            showToast(res.message);
             if (res.resetLink) {
-              resetLinkTextarea.value = res.resetLink;
-              resetLinkDisplay.classList.remove('hidden');
-              // Optionally, automatically select the text for easy copying
-              resetLinkTextarea.select();
+              alert(
+                `DEV MODE: Link sent. Copy the token and use the Settings > Change Password section: ${
+                  res.resetLink.split('token=')[1]
+                }`,
+              );
             }
+            showSection('login-form'); // Go back to login after sending link
+          } catch (err) {}
+        });
 
-            setTimeout(() => {
-              showSection('login-form'); // Go back to login after showing the link/message
-            }, 5000); // 5 seconds
+      document
+        .getElementById('dashboard-change-password-form')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const token = document.getElementById('reset-token-input').value;
+          const password = document.getElementById('dash-new-pwd').value;
+          const confirmPassword =
+            document.getElementById('dash-confirm-pwd').value;
+
+          if (!token) return showToast('Please enter a token.', 'error');
+          if (password !== confirmPassword)
+            return showToast('Passwords do not match.', 'error');
+
+          try {
+            await apiRequest('/auth/reset-password', 'POST', {
+              token,
+              password,
+              confirmPassword,
+            });
+            showToast(
+              'Password changed successfully! You can now log back in with the new password.',
+              'success',
+            );
+            document.getElementById('dashboard-change-password-form').reset();
+            setTimeout(logout, 1500); // Force logout to apply new credentials
           } catch (err) {
-            showToast(err.message, 'error');
-          } finally {
-            sendLinkBtn.disabled = false;
-            sendLinkBtn.innerHTML = 'SEND LINK';
+            showToast(
+              'Password reset failed. Token may be invalid or expired.',
+              'error',
+            );
           }
         });
+
       // === END NEW ===
 
       // ================= DASHBOARD FUNCTIONS =================
