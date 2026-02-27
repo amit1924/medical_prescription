@@ -1030,7 +1030,10 @@
     <script>
       (function () {
         // ------ config ------
-        const API_BASE = 'http://localhost:3000'; // adjust if needed
+        const API_BASE =
+          window.location.hostname === 'localhost'
+            ? 'http://localhost:3000'
+            : 'https://medical-prescription-backend.vercel.app';
         const STORAGE_KEY = 'medPrescUser';
 
         // state
