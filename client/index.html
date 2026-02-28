@@ -146,17 +146,19 @@
               <button class="btn-primary" id="signupBtn">create account</button>
             </div>
 
-            <!-- forgot / reset inline (hidden) -->
+            <!-- forgot / reset inline (hidden) - UPDATED FOR SECURITY -->
             <div
               id="forgotContainer"
               style="display: none"
               class="reset-section"
             >
               <h4 style="margin-bottom: 1rem">🔐 reset password</h4>
+
+              <!-- Step 1: Request reset link -->
               <div id="stepEmail">
                 <div class="input-group">
-                  <label>email</label
-                  ><input
+                  <label>📧 email</label>
+                  <input
                     type="email"
                     id="resetEmail"
                     placeholder="your email"
@@ -169,36 +171,19 @@
                   ← back
                 </button>
               </div>
-              <div id="stepToken" style="display: none">
-                <div class="input-group">
-                  <label>reset token</label
-                  ><input
-                    type="text"
-                    id="tokenInput"
-                    placeholder="paste token"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>new password</label
-                  ><input
-                    type="password"
-                    id="newPass"
-                    placeholder="new password"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>confirm</label
-                  ><input
-                    type="password"
-                    id="confirmPass"
-                    placeholder="confirm"
-                  />
-                </div>
-                <button class="btn-primary" id="resetPassBtn">
-                  set new password
-                </button>
-                <button class="btn-outline mt-2" id="backToEmail">
-                  ← back
+
+              <!-- Step 2: Show success message and instructions -->
+              <div id="stepSuccess" style="display: none" class="text-center">
+                <div class="success-icon">✅</div>
+                <p class="success-message">
+                  If an account exists with this email, a reset link has been
+                  sent.
+                </p>
+                <p class="text-small mt-2">
+                  Check your email and click the link to reset your password.
+                </p>
+                <button class="btn-outline mt-3" id="backToLoginFromSuccess">
+                  ← back to login
                 </button>
               </div>
             </div>

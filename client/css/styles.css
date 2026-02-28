@@ -1356,3 +1356,229 @@ body {
     stroke-dashoffset: 0;
   }
 }
+
+/* ===== BEAUTIFUL CONFIRM DIALOG ===== */
+.confirm-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  padding: 1rem;
+}
+
+.confirm-dialog.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.confirm-dialog-content {
+  background: linear-gradient(145deg, #1e2735, #151e2a);
+  border-radius: 2rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  border: 1px solid #2a3a50;
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(74, 128, 214, 0.2) inset;
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.confirm-dialog.show .confirm-dialog-content {
+  transform: scale(1);
+}
+
+.confirm-dialog-icon {
+  font-size: 3.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.confirm-dialog-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #e2e9ff;
+  text-align: center;
+  margin-bottom: 0.8rem;
+  letter-spacing: -0.5px;
+}
+
+.confirm-dialog-message {
+  font-size: 1.1rem;
+  color: #b0c6e8;
+  text-align: center;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+  padding: 0 0.5rem;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.confirm-dialog-btn {
+  padding: 0.9rem 1.8rem;
+  border-radius: 3rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  flex: 1;
+  max-width: 150px;
+  border: 1px solid transparent;
+}
+
+.confirm-dialog-btn.cancel {
+  background: #1f2a38;
+  color: #b0c6e8;
+  border-color: #3e506a;
+}
+
+.confirm-dialog-btn.cancel:hover {
+  background: #2c3b4f;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.confirm-dialog-btn.confirm {
+  background: #2266c7;
+  color: white;
+  border-color: #4273c9;
+  box-shadow: 0 8px 18px -8px #0f2b4b;
+}
+
+.confirm-dialog-btn.confirm:hover {
+  background: #2b6fd8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -5px #1e3a5f;
+}
+
+/* Danger type (for delete) */
+.confirm-dialog-danger .confirm-dialog-btn.confirm {
+  background: #c72a2a;
+  border-color: #a13d3d;
+}
+
+.confirm-dialog-danger .confirm-dialog-btn.confirm:hover {
+  background: #d43535;
+}
+
+/* Warning type */
+.confirm-dialog-warning .confirm-dialog-btn.confirm {
+  background: #f39c12;
+  color: #1f1407;
+}
+
+/* Edit type */
+.confirm-dialog-edit .confirm-dialog-btn.confirm {
+  background: #2e6b3e;
+  border-color: #3d8f55;
+}
+
+/* Info type */
+.confirm-dialog-info .confirm-dialog-btn.confirm {
+  background: #3498db;
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .confirm-dialog-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  .confirm-dialog-content {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .confirm-dialog-content {
+    padding: 1.8rem 1.2rem;
+  }
+
+  .confirm-dialog-title {
+    font-size: 1.4rem;
+  }
+
+  .confirm-dialog-message {
+    font-size: 1rem;
+  }
+
+  .confirm-dialog-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .confirm-dialog-btn {
+    max-width: 100%;
+  }
+}
+/* Success message styles for forgot password */
+.success-icon {
+  font-size: 3rem;
+  text-align: center;
+  margin: 1rem 0;
+  animation: scaleIn 0.5s ease;
+}
+
+.success-message {
+  color: #b1e6cc;
+  background: #1f3f34;
+  padding: 1rem;
+  border-radius: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+  border-left: 5px solid #2e9a76;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #3e506a;
+  color: #b0c6e8;
+  padding: 0.7rem 1.5rem;
+  border-radius: 2rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.btn-outline:hover {
+  background: #1f2a38;
+  border-color: #4a80d6;
+  color: white;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-3 {
+  margin-top: 1.5rem;
+}
