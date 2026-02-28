@@ -67,6 +67,142 @@
 //   const loadingOverlay = document.getElementById('loadingOverlay');
 //   const loadingText = document.getElementById('loadingText');
 
+//   // ===== CUSTOM CONFIRM DIALOG =====
+//   // ===== CUSTOM CONFIRM DIALOG =====
+//   class ConfirmDialog {
+//     constructor() {
+//       this.dialog = null;
+//       this.cancelBtn = null;
+//       this.confirmBtn = null;
+//       this.titleEl = null;
+//       this.messageEl = null;
+//       this.onConfirm = null;
+//       this.onCancel = null;
+//       this.createDialog();
+//     }
+
+//     createDialog() {
+//       // Remove existing dialog if any
+//       const existingDialog = document.getElementById('confirmDialog');
+//       if (existingDialog) {
+//         existingDialog.remove();
+//       }
+
+//       // Create dialog element
+//       this.dialog = document.createElement('div');
+//       this.dialog.id = 'confirmDialog';
+//       this.dialog.className = 'confirm-dialog';
+
+//       // Set inner HTML
+//       this.dialog.innerHTML = `
+//       <div class="confirm-dialog-content">
+//         <div class="confirm-dialog-icon">⚠️</div>
+//         <h3 class="confirm-dialog-title" id="confirmDialogTitle">Confirm Action</h3>
+//         <p class="confirm-dialog-message" id="confirmDialogMessage">Are you sure?</p>
+//         <div class="confirm-dialog-actions">
+//           <button class="confirm-dialog-btn cancel" id="confirmDialogCancel">Cancel</button>
+//           <button class="confirm-dialog-btn confirm" id="confirmDialogConfirm">Confirm</button>
+//         </div>
+//       </div>
+//     `;
+
+//       // Add to body
+//       document.body.appendChild(this.dialog);
+
+//       // Get references to elements
+//       this.cancelBtn = document.getElementById('confirmDialogCancel');
+//       this.confirmBtn = document.getElementById('confirmDialogConfirm');
+//       this.titleEl = document.getElementById('confirmDialogTitle');
+//       this.messageEl = document.getElementById('confirmDialogMessage');
+
+//       // Add event listeners
+//       this.cancelBtn.addEventListener('click', (e) => {
+//         e.preventDefault();
+//         e.stopPropagation();
+//         this.hide();
+//       });
+
+//       this.confirmBtn.addEventListener('click', (e) => {
+//         e.preventDefault();
+//         e.stopPropagation();
+//         if (this.onConfirm) {
+//           this.onConfirm();
+//         }
+//         this.hide();
+//       });
+
+//       // Close on click outside
+//       this.dialog.addEventListener('click', (e) => {
+//         if (e.target === this.dialog) {
+//           this.hide();
+//         }
+//       });
+
+//       // Close on escape key
+//       document.addEventListener('keydown', (e) => {
+//         if (e.key === 'Escape' && this.dialog.classList.contains('show')) {
+//           this.hide();
+//         }
+//       });
+//     }
+
+//     show(options = {}) {
+//       const {
+//         title = 'Confirm Action',
+//         message = 'Are you sure you want to proceed?',
+//         confirmText = 'Confirm',
+//         cancelText = 'Cancel',
+//         type = 'warning', // warning, danger, info, edit, success
+//         onConfirm = null,
+//         onCancel = null,
+//       } = options;
+
+//       this.titleEl.textContent = title;
+//       this.messageEl.textContent = message;
+//       this.confirmBtn.textContent = confirmText;
+//       this.cancelBtn.textContent = cancelText;
+
+//       // Set type class
+//       this.dialog.className = 'confirm-dialog';
+//       this.dialog.classList.add(`confirm-dialog-${type}`);
+
+//       // Set icon based on type
+//       const iconMap = {
+//         warning: '⚠️',
+//         danger: '🗑️',
+//         info: 'ℹ️',
+//         success: '✅',
+//         edit: '✏️',
+//       };
+//       this.dialog.querySelector('.confirm-dialog-icon').textContent =
+//         iconMap[type] || '❓';
+
+//       this.onConfirm = onConfirm;
+//       this.onCancel = onCancel;
+
+//       // Show dialog
+//       setTimeout(() => {
+//         this.dialog.classList.add('show');
+//       }, 10);
+//     }
+
+//     hide() {
+//       this.dialog.classList.remove('show');
+//       if (this.onCancel) {
+//         this.onCancel();
+//       }
+//     }
+
+//     async confirm(options) {
+//       return new Promise((resolve) => {
+//         this.show({
+//           ...options,
+//           onConfirm: () => resolve(true),
+//           onCancel: () => resolve(false),
+//         });
+//       });
+//     }
+//   }
 //   // ===== TOAST SYSTEM =====
 //   class ToastManager {
 //     constructor(container) {
@@ -279,9 +415,81 @@
 //     }
 //   }
 
-//   // Initialize toast and loading managers
+//   // ===== FILENAME FORMATTING FUNCTION =====
+//   function formatFilename(filename) {
+//     if (!filename) return 'Unknown Prescription';
+
+//     // Remove file extension
+//     const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+
+//     // Check if it's an IMG_ pattern (like IMG_20251204_205741.jpg)
+//     const imgPattern = /^IMG_(\d{4})(\d{2})(\d{2})_(\d{6})/i;
+//     const match = nameWithoutExt.match(imgPattern);
+
+//     if (match) {
+//       const [_, year, month, day, time] = match;
+//       // Format time as HH:MM
+//       const formattedTime = `${time.substring(0, 2)}:${time.substring(2, 4)}`;
+//       const date = new Date(year, month - 1, day);
+//       const options = { year: 'numeric', month: 'short', day: 'numeric' };
+//       const formattedDate = date.toLocaleDateString('en-US', options);
+//       return `📄 Prescription · ${formattedDate} at ${formattedTime}`;
+//     }
+
+//     // Check for date patterns like 20251204
+//     const datePattern = /(\d{4})(\d{2})(\d{2})/;
+//     const dateMatch = nameWithoutExt.match(datePattern);
+
+//     if (dateMatch) {
+//       const [_, year, month, day] = dateMatch;
+//       const date = new Date(year, month - 1, day);
+//       const options = { year: 'numeric', month: 'short', day: 'numeric' };
+//       const formattedDate = date.toLocaleDateString('en-US', options);
+
+//       // Try to extract any doctor name if present
+//       let doctorPart = nameWithoutExt
+//         .replace(datePattern, '')
+//         .replace(/[_\-]/g, ' ')
+//         .trim();
+//       if (doctorPart) {
+//         // Capitalize first letter of each word
+//         doctorPart = doctorPart
+//           .split(' ')
+//           .map(
+//             (word) =>
+//               word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+//           )
+//           .join(' ');
+//         return `📄 ${doctorPart} · ${formattedDate}`;
+//       }
+//       return `📄 Prescription · ${formattedDate}`;
+//     }
+
+//     // If no pattern matches, clean up the filename
+//     let cleaned = nameWithoutExt
+//       .replace(/[_\-]/g, ' ') // Replace underscores and hyphens with spaces
+//       .replace(/\s+/g, ' ') // Remove multiple spaces
+//       .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
+//       .trim();
+
+//     // Capitalize first letter of each word
+//     cleaned = cleaned
+//       .split(' ')
+//       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+//       .join(' ');
+
+//     // If cleaned is too long, truncate it
+//     if (cleaned.length > 30) {
+//       cleaned = cleaned.substring(0, 27) + '...';
+//     }
+
+//     return `📄 ${cleaned}`;
+//   }
+
+//   // Initialize toast, loading, and confirm managers
 //   const toast = new ToastManager(toastContainer);
 //   const loader = new LoadingManager(loadingOverlay, loadingText);
+//   const confirm = new ConfirmDialog();
 
 //   // Add loading state to cards
 //   function setCardLoading(cardId, isLoading) {
@@ -430,7 +638,8 @@
 //     let filtered = allFiles.filter((file) => {
 //       const matchesSearch =
 //         (file.doctor && file.doctor.toLowerCase().includes(searchTerm)) ||
-//         (file.filename && file.filename.toLowerCase().includes(searchTerm));
+//         (file.filename && file.filename.toLowerCase().includes(searchTerm)) ||
+//         formatFilename(file.filename).toLowerCase().includes(searchTerm);
 //       return matchesSearch;
 //     });
 
@@ -480,7 +689,7 @@
 //       .map(
 //         (f) => `
 //               <div class="pres-card" data-id="${f.id}">
-//                 <div class="filename">📄 ${f.filename}</div>
+//                 <div class="filename">${formatFilename(f.filename)}</div>
 //                 <div class="pres-meta">
 //                   <span><strong>👨‍⚕️</strong> ${f.doctor || '—'}</span>
 //                   <span><strong>📅</strong> ${f.date || '—'}</span>
@@ -494,8 +703,8 @@
 //                   <input type="text" id="edit-doctor-${f.id}" placeholder="doctor" value="${f.doctor || ''}">
 //                   <input type="date" id="edit-date-${f.id}" value="${f.date || ''}">
 //                   <div class="flex">
-//                     <button class="btn-icon save-edit" data-id="${f.id}">save</button>
-//                     <button class="btn-icon cancel-edit" data-id="${f.id}">cancel</button>
+//                     <button class="btn-icon save-edit" data-id="${f.id}">💾 save</button>
+//                     <button class="btn-icon cancel-edit" data-id="${f.id}">✖ cancel</button>
 //                   </div>
 //                 </div>
 //               </div>
@@ -826,11 +1035,21 @@
 //   });
 
 //   // logout (both buttons)
-//   function logout() {
-//     currentUser = null;
-//     saveUserToStorage(null);
-//     refreshUI();
-//     toast.info('You have been logged out', 'Goodbye');
+//   async function logout() {
+//     const confirmed = await confirm.confirm({
+//       title: 'Sign Out',
+//       message: 'Are you sure you want to sign out?',
+//       confirmText: 'Sign Out',
+//       cancelText: 'Stay',
+//       type: 'info',
+//     });
+
+//     if (confirmed) {
+//       currentUser = null;
+//       saveUserToStorage(null);
+//       refreshUI();
+//       toast.info('You have been signed out', 'Goodbye');
+//     }
 //   }
 
 //   sidebarLogoutBtn.addEventListener('click', (e) => {
@@ -867,6 +1086,17 @@
 //       toast.warning('Please select a file to upload', 'No File Selected');
 //       return;
 //     }
+
+//     // Confirm upload
+//     const confirmed = await confirm.confirm({
+//       title: 'Confirm Upload',
+//       message: `Are you sure you want to upload "${file.name}"?`,
+//       confirmText: 'Upload',
+//       cancelText: 'Cancel',
+//       type: 'info',
+//     });
+
+//     if (!confirmed) return;
 
 //     const doctor = doctorName.value.trim() || 'Unknown';
 //     const date = prescDate.value || new Date().toISOString().split('T')[0];
@@ -928,6 +1158,17 @@
 //       toast.warning('Please select a file to upload', 'No File Selected');
 //       return;
 //     }
+
+//     // Confirm upload
+//     const confirmed = await confirm.confirm({
+//       title: 'Confirm Upload',
+//       message: `Are you sure you want to upload "${file.name}"?`,
+//       confirmText: 'Upload',
+//       cancelText: 'Cancel',
+//       type: 'info',
+//     });
+
+//     if (!confirmed) return;
 
 //     const doctor = doctorName.value.trim() || 'Unknown';
 //     const date = prescDate.value || new Date().toISOString().split('T')[0];
@@ -1040,6 +1281,23 @@
 //     if (target.classList.contains('delete') && metaId) {
 //       e.preventDefault();
 
+//       // Find the filename for the confirmation message
+//       const file = allFiles.find((f) => f.id === metaId);
+//       const filename = file
+//         ? formatFilename(file.filename)
+//         : 'this prescription';
+
+//       // Show beautiful confirm dialog
+//       const confirmed = await confirm.confirm({
+//         title: 'Delete Prescription',
+//         message: `Are you sure you want to delete ${filename}? This action cannot be undone.`,
+//         confirmText: 'Delete Permanently',
+//         cancelText: 'Cancel',
+//         type: 'danger',
+//       });
+
+//       if (!confirmed) return;
+
 //       loader.setButtonLoading(target, true);
 
 //       try {
@@ -1065,6 +1323,18 @@
 
 //     if (target.classList.contains('save-edit')) {
 //       const id = target.dataset.id;
+
+//       // Confirm edit
+//       const confirmed = await confirm.confirm({
+//         title: 'Save Changes',
+//         message: 'Are you sure you want to save these changes?',
+//         confirmText: 'Save',
+//         cancelText: 'Cancel',
+//         type: 'edit',
+//       });
+
+//       if (!confirmed) return;
+
 //       loader.setButtonLoading(target, true);
 
 //       const doctor = document.getElementById(`edit-doctor-${id}`).value;
@@ -1103,7 +1373,11 @@
 //     }
 
 //     if (target.classList.contains('edit')) {
-//       document.getElementById(`edit-${metaId}`).classList.toggle('hidden');
+//       // Check if any other edit row is open and close it
+//       document.querySelectorAll('.edit-row:not(.hidden)').forEach((row) => {
+//         row.classList.add('hidden');
+//       });
+//       document.getElementById(`edit-${metaId}`).classList.remove('hidden');
 //     }
 
 //     if (target.classList.contains('cancel-edit')) {
@@ -1175,7 +1449,7 @@
   const signupForm = document.getElementById('signupForm');
   const forgotContainer = document.getElementById('forgotContainer');
   const stepEmailDiv = document.getElementById('stepEmail');
-  const stepTokenDiv = document.getElementById('stepToken');
+  const stepSuccessDiv = document.getElementById('stepSuccess');
   const authMessage = document.getElementById('authMessage');
   const authSuccess = document.getElementById('authSuccess');
 
@@ -1185,9 +1459,6 @@
   const signupEmail = document.getElementById('signupEmail');
   const signupPassword = document.getElementById('signupPassword');
   const resetEmail = document.getElementById('resetEmail');
-  const tokenInput = document.getElementById('tokenInput');
-  const newPass = document.getElementById('newPass');
-  const confirmPass = document.getElementById('confirmPass');
   const fileInput = document.getElementById('fileInput');
   const selectedFileName = document.getElementById('selectedFileName');
   const doctorName = document.getElementById('doctorName');
@@ -1221,6 +1492,142 @@
   const toastContainer = document.getElementById('toastContainer');
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingText = document.getElementById('loadingText');
+
+  // ===== CUSTOM CONFIRM DIALOG =====
+  class ConfirmDialog {
+    constructor() {
+      this.dialog = null;
+      this.cancelBtn = null;
+      this.confirmBtn = null;
+      this.titleEl = null;
+      this.messageEl = null;
+      this.onConfirm = null;
+      this.onCancel = null;
+      this.createDialog();
+    }
+
+    createDialog() {
+      // Remove existing dialog if any
+      const existingDialog = document.getElementById('confirmDialog');
+      if (existingDialog) {
+        existingDialog.remove();
+      }
+
+      // Create dialog element
+      this.dialog = document.createElement('div');
+      this.dialog.id = 'confirmDialog';
+      this.dialog.className = 'confirm-dialog';
+
+      // Set inner HTML
+      this.dialog.innerHTML = `
+        <div class="confirm-dialog-content">
+          <div class="confirm-dialog-icon">⚠️</div>
+          <h3 class="confirm-dialog-title" id="confirmDialogTitle">Confirm Action</h3>
+          <p class="confirm-dialog-message" id="confirmDialogMessage">Are you sure?</p>
+          <div class="confirm-dialog-actions">
+            <button class="confirm-dialog-btn cancel" id="confirmDialogCancel">Cancel</button>
+            <button class="confirm-dialog-btn confirm" id="confirmDialogConfirm">Confirm</button>
+          </div>
+        </div>
+      `;
+
+      // Add to body
+      document.body.appendChild(this.dialog);
+
+      // Get references to elements
+      this.cancelBtn = document.getElementById('confirmDialogCancel');
+      this.confirmBtn = document.getElementById('confirmDialogConfirm');
+      this.titleEl = document.getElementById('confirmDialogTitle');
+      this.messageEl = document.getElementById('confirmDialogMessage');
+
+      // Add event listeners
+      this.cancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.hide();
+      });
+
+      this.confirmBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.onConfirm) {
+          this.onConfirm();
+        }
+        this.hide();
+      });
+
+      // Close on click outside
+      this.dialog.addEventListener('click', (e) => {
+        if (e.target === this.dialog) {
+          this.hide();
+        }
+      });
+
+      // Close on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.dialog.classList.contains('show')) {
+          this.hide();
+        }
+      });
+    }
+
+    show(options = {}) {
+      const {
+        title = 'Confirm Action',
+        message = 'Are you sure you want to proceed?',
+        confirmText = 'Confirm',
+        cancelText = 'Cancel',
+        type = 'warning',
+        onConfirm = null,
+        onCancel = null,
+      } = options;
+
+      this.titleEl.textContent = title;
+      this.messageEl.textContent = message;
+      this.confirmBtn.textContent = confirmText;
+      this.cancelBtn.textContent = cancelText;
+
+      // Set type class
+      this.dialog.className = 'confirm-dialog';
+      this.dialog.classList.add(`confirm-dialog-${type}`);
+
+      // Set icon based on type
+      const iconMap = {
+        warning: '⚠️',
+        danger: '🗑️',
+        info: 'ℹ️',
+        success: '✅',
+        edit: '✏️',
+      };
+      this.dialog.querySelector('.confirm-dialog-icon').textContent =
+        iconMap[type] || '❓';
+
+      this.onConfirm = onConfirm;
+      this.onCancel = onCancel;
+
+      // Show dialog
+      setTimeout(() => {
+        this.dialog.classList.add('show');
+      }, 10);
+    }
+
+    hide() {
+      this.dialog.classList.remove('show');
+      if (this.onCancel) {
+        this.onCancel();
+      }
+    }
+
+    async confirm(options) {
+      return new Promise((resolve) => {
+        this.show({
+          ...options,
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false),
+        });
+      });
+    }
+  }
 
   // ===== TOAST SYSTEM =====
   class ToastManager {
@@ -1505,9 +1912,10 @@
     return `📄 ${cleaned}`;
   }
 
-  // Initialize toast and loading managers
+  // Initialize toast, loading, and confirm managers
   const toast = new ToastManager(toastContainer);
   const loader = new LoadingManager(loadingOverlay, loadingText);
+  const confirm = new ConfirmDialog();
 
   // Add loading state to cards
   function setCardLoading(cardId, isLoading) {
@@ -1613,11 +2021,11 @@
     doctorListContainer.innerHTML = sortedDocs
       .map(
         ([doc, count]) => `
-              <div class="doctor-item">
-                <span class="doctor-name">${doc}</span>
-                <span class="doctor-count">${count}</span>
-              </div>
-            `,
+          <div class="doctor-item">
+            <span class="doctor-name">${doc}</span>
+            <span class="doctor-count">${count}</span>
+          </div>
+        `,
       )
       .join('');
 
@@ -1706,27 +2114,27 @@
     prescriptionsDiv.innerHTML = filteredFiles
       .map(
         (f) => `
-              <div class="pres-card" data-id="${f.id}">
-                <div class="filename">${formatFilename(f.filename)}</div>
-                <div class="pres-meta">
-                  <span><strong>👨‍⚕️</strong> ${f.doctor || '—'}</span>
-                  <span><strong>📅</strong> ${f.date || '—'}</span>
-                </div>
-                <div class="card-actions">
-                  <button class="btn-icon view-btn" data-metaid="${f.id}">👁 view</button>
-                  <button class="btn-icon edit" data-metaid="${f.id}">✎ edit</button>
-                  <button class="btn-icon delete" data-metaid="${f.id}">✕ delete</button>
-                </div>
-                <div class="edit-row hidden" id="edit-${f.id}">
-                  <input type="text" id="edit-doctor-${f.id}" placeholder="doctor" value="${f.doctor || ''}">
-                  <input type="date" id="edit-date-${f.id}" value="${f.date || ''}">
-                  <div class="flex">
-                    <button class="btn-icon save-edit" data-id="${f.id}">save</button>
-                    <button class="btn-icon cancel-edit" data-id="${f.id}">cancel</button>
-                  </div>
-                </div>
+          <div class="pres-card" data-id="${f.id}">
+            <div class="filename">${formatFilename(f.filename)}</div>
+            <div class="pres-meta">
+              <span><strong>👨‍⚕️</strong> ${f.doctor || '—'}</span>
+              <span><strong>📅</strong> ${f.date || '—'}</span>
+            </div>
+            <div class="card-actions">
+              <button class="btn-icon view-btn" data-metaid="${f.id}">👁 view</button>
+              <button class="btn-icon edit" data-metaid="${f.id}">✎ edit</button>
+              <button class="btn-icon delete" data-metaid="${f.id}">✕ delete</button>
+            </div>
+            <div class="edit-row hidden" id="edit-${f.id}">
+              <input type="text" id="edit-doctor-${f.id}" placeholder="doctor" value="${f.doctor || ''}">
+              <input type="date" id="edit-date-${f.id}" value="${f.date || ''}">
+              <div class="flex">
+                <button class="btn-icon save-edit" data-id="${f.id}">💾 save</button>
+                <button class="btn-icon cancel-edit" data-id="${f.id}">✖ cancel</button>
               </div>
-            `,
+            </div>
+          </div>
+        `,
       )
       .join('');
   }
@@ -1793,7 +2201,7 @@
     showSignupTab();
   });
 
-  // Forgot flow
+  // ===== FORGOT PASSWORD FLOW (SECURE) =====
   document
     .getElementById('forgotPasswordBtn')
     .addEventListener('click', (e) => {
@@ -1801,9 +2209,12 @@
       loginForm.style.display = 'none';
       signupForm.style.display = 'none';
       forgotContainer.style.display = 'block';
-      stepEmailDiv.style.display = 'block';
-      stepTokenDiv.style.display = 'none';
+      document.getElementById('stepEmail').style.display = 'block';
+      if (document.getElementById('stepSuccess')) {
+        document.getElementById('stepSuccess').style.display = 'none';
+      }
       setAuthError(null);
+      setAuthSuccess(null);
     });
 
   document
@@ -1813,9 +2224,12 @@
       loginForm.style.display = 'none';
       signupForm.style.display = 'none';
       forgotContainer.style.display = 'block';
-      stepEmailDiv.style.display = 'block';
-      stepTokenDiv.style.display = 'none';
+      document.getElementById('stepEmail').style.display = 'block';
+      if (document.getElementById('stepSuccess')) {
+        document.getElementById('stepSuccess').style.display = 'none';
+      }
       setAuthError(null);
+      setAuthSuccess(null);
     });
 
   document
@@ -1824,22 +2238,45 @@
       e.preventDefault();
       forgotContainer.style.display = 'none';
       loginForm.style.display = 'block';
+      document.getElementById('resetEmail').value = '';
     });
 
-  document.getElementById('backToEmail').addEventListener('click', (e) => {
-    e.preventDefault();
-    stepTokenDiv.style.display = 'none';
-    stepEmailDiv.style.display = 'block';
-  });
+  // Back to login from success message
+  const backToLoginFromSuccess = document.getElementById(
+    'backToLoginFromSuccess',
+  );
+  if (backToLoginFromSuccess) {
+    backToLoginFromSuccess.addEventListener('click', (e) => {
+      e.preventDefault();
+      forgotContainer.style.display = 'none';
+      loginForm.style.display = 'block';
+      document.getElementById('resetEmail').value = '';
+    });
+  }
 
+  // Send reset link
   document
     .getElementById('sendResetLink')
     .addEventListener('click', async (e) => {
       e.preventDefault();
       const btn = e.currentTarget;
 
-      const email = resetEmail.value.trim();
-      if (!email) return setAuthError('enter email');
+      const email = document
+        .getElementById('resetEmail')
+        .value.trim()
+        .toLowerCase();
+
+      if (!email) {
+        setAuthError('Please enter your email');
+        return;
+      }
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setAuthError('Please enter a valid email address');
+        return;
+      }
 
       setAuthError(null);
       loader.setButtonLoading(btn, true);
@@ -1851,20 +2288,32 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
           });
+
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'request failed');
 
-          loader.showSuccess('Link Generated!', 1200);
-          setAuthSuccess('reset link generated (check console / demo token)');
+          if (!res.ok) {
+            throw new Error(data.error || 'Request failed');
+          }
 
-          if (data.resetLink) {
-            const urlParams = new URLSearchParams(data.resetLink.split('?')[1]);
-            const token = urlParams.get('token');
-            if (token) {
-              stepEmailDiv.style.display = 'none';
-              stepTokenDiv.style.display = 'block';
-              tokenInput.value = token;
-            }
+          // Always show success message for security
+          loader.showSuccess('Link Sent!', 1200);
+
+          // Hide email step and show success message
+          document.getElementById('stepEmail').style.display = 'none';
+          if (document.getElementById('stepSuccess')) {
+            document.getElementById('stepSuccess').style.display = 'block';
+          }
+
+          // Clear any previous messages
+          setAuthError(null);
+          setAuthSuccess(null);
+
+          // Log the reset link in development only
+          if (data.resetLink && window.location.hostname === 'localhost') {
+            console.log(
+              '🔐 Password reset link (development only):',
+              data.resetLink,
+            );
           }
         }, 'Sending reset link...');
       } catch (e) {
@@ -1874,58 +2323,12 @@
       }
     });
 
-  document
-    .getElementById('resetPassBtn')
-    .addEventListener('click', async (e) => {
-      e.preventDefault();
-      const btn = e.currentTarget;
-
-      const token = tokenInput.value.trim();
-      const pwd = newPass.value;
-      const conf = confirmPass.value;
-
-      if (!token || !pwd || !conf) return setAuthError('fill all fields');
-      if (pwd !== conf) return setAuthError('passwords mismatch');
-
-      loader.setButtonLoading(btn, true);
-
-      try {
-        await loader.withLoader(async () => {
-          const res = await fetch(`${API_BASE}/auth/reset-password`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              token,
-              password: pwd,
-              confirmPassword: conf,
-            }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'reset failed');
-
-          loader.showSuccess('Password Updated!', 1500);
-          setAuthSuccess('password updated! please login');
-
-          setTimeout(() => {
-            forgotContainer.style.display = 'none';
-            loginForm.style.display = 'block';
-            stepEmailDiv.style.display = 'block';
-            stepTokenDiv.style.display = 'none';
-          }, 1500);
-        }, 'Resetting password...');
-      } catch (e) {
-        setAuthError(e.message);
-      } finally {
-        loader.setButtonLoading(btn, false);
-      }
-    });
-
-  // login
+  // ===== LOGIN =====
   document.getElementById('loginBtn').addEventListener('click', async (e) => {
     e.preventDefault();
     const btn = e.currentTarget;
 
-    const email = loginEmail.value.trim();
+    const email = loginEmail.value.trim().toLowerCase();
     const pass = loginPassword.value;
 
     if (!email || !pass) {
@@ -1972,7 +2375,7 @@
       e.preventDefault();
       const btn = e.currentTarget;
 
-      const email = loginEmail.value.trim();
+      const email = loginEmail.value.trim().toLowerCase();
       const pass = loginPassword.value;
 
       if (!email || !pass) {
@@ -2012,16 +2415,27 @@
       }
     });
 
-  // signup
+  // ===== SIGNUP =====
   document.getElementById('signupBtn').addEventListener('click', async (e) => {
     e.preventDefault();
     const btn = e.currentTarget;
 
-    const email = signupEmail.value.trim();
+    const email = signupEmail.value.trim().toLowerCase();
     const pass = signupPassword.value;
 
     if (!email || !pass) {
-      setAuthError('email & password');
+      setAuthError('email & password required');
+      return;
+    }
+
+    if (pass.length < 6) {
+      setAuthError('password must be at least 6 characters');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setAuthError('Please enter a valid email address');
       return;
     }
 
@@ -2043,6 +2457,8 @@
         setTimeout(() => {
           showLoginTab();
           loginEmail.value = email;
+          signupEmail.value = '';
+          signupPassword.value = '';
         }, 1200);
       }, 'Creating account...');
     } catch (e) {
@@ -2052,12 +2468,22 @@
     }
   });
 
-  // logout (both buttons)
-  function logout() {
-    currentUser = null;
-    saveUserToStorage(null);
-    refreshUI();
-    toast.info('You have been logged out', 'Goodbye');
+  // ===== LOGOUT =====
+  async function logout() {
+    const confirmed = await confirm.confirm({
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out?',
+      confirmText: 'Sign Out',
+      cancelText: 'Stay',
+      type: 'info',
+    });
+
+    if (confirmed) {
+      currentUser = null;
+      saveUserToStorage(null);
+      refreshUI();
+      toast.info('You have been signed out', 'Goodbye');
+    }
   }
 
   sidebarLogoutBtn.addEventListener('click', (e) => {
@@ -2070,7 +2496,7 @@
     logout();
   });
 
-  // file upload
+  // ===== FILE UPLOAD =====
   fileInput.addEventListener('change', () => {
     selectedFileName.innerText = fileInput.files[0]?.name || '';
   });
@@ -2094,6 +2520,17 @@
       toast.warning('Please select a file to upload', 'No File Selected');
       return;
     }
+
+    // Confirm upload
+    const confirmed = await confirm.confirm({
+      title: 'Confirm Upload',
+      message: `Are you sure you want to upload "${file.name}"?`,
+      confirmText: 'Upload',
+      cancelText: 'Cancel',
+      type: 'info',
+    });
+
+    if (!confirmed) return;
 
     const doctor = doctorName.value.trim() || 'Unknown';
     const date = prescDate.value || new Date().toISOString().split('T')[0];
@@ -2156,6 +2593,17 @@
       return;
     }
 
+    // Confirm upload
+    const confirmed = await confirm.confirm({
+      title: 'Confirm Upload',
+      message: `Are you sure you want to upload "${file.name}"?`,
+      confirmText: 'Upload',
+      cancelText: 'Cancel',
+      type: 'info',
+    });
+
+    if (!confirmed) return;
+
     const doctor = doctorName.value.trim() || 'Unknown';
     const date = prescDate.value || new Date().toISOString().split('T')[0];
 
@@ -2205,7 +2653,7 @@
     }
   });
 
-  // load prescriptions
+  // ===== LOAD PRESCRIPTIONS =====
   async function loadPrescriptions() {
     if (!currentUser) return;
 
@@ -2225,7 +2673,7 @@
     }
   }
 
-  // Event listeners for search and filter
+  // ===== SEARCH AND FILTER =====
   searchInput.addEventListener('input', renderPrescriptions);
   yearFilter.addEventListener('change', renderPrescriptions);
   sortSelect.addEventListener('change', renderPrescriptions);
@@ -2248,7 +2696,7 @@
     toast.info('All filters have been cleared', 'Filters Cleared');
   });
 
-  // handle view, edit, delete (delegation) with touch support
+  // ===== PRESCRIPTION ACTIONS (VIEW, EDIT, DELETE) =====
   prescriptionsDiv.addEventListener('click', async (e) => {
     await handlePrescriptionAction(e);
   });
@@ -2264,8 +2712,26 @@
 
     const metaId = target.dataset.metaid;
 
+    // DELETE action
     if (target.classList.contains('delete') && metaId) {
       e.preventDefault();
+
+      // Find the filename for the confirmation message
+      const file = allFiles.find((f) => f.id === metaId);
+      const filename = file
+        ? formatFilename(file.filename)
+        : 'this prescription';
+
+      // Show beautiful confirm dialog
+      const confirmed = await confirm.confirm({
+        title: 'Delete Prescription',
+        message: `Are you sure you want to delete ${filename}? This action cannot be undone.`,
+        confirmText: 'Delete Permanently',
+        cancelText: 'Cancel',
+        type: 'danger',
+      });
+
+      if (!confirmed) return;
 
       loader.setButtonLoading(target, true);
 
@@ -2290,8 +2756,21 @@
       }
     }
 
+    // SAVE EDIT action
     if (target.classList.contains('save-edit')) {
       const id = target.dataset.id;
+
+      // Confirm edit
+      const confirmed = await confirm.confirm({
+        title: 'Save Changes',
+        message: 'Are you sure you want to save these changes?',
+        confirmText: 'Save',
+        cancelText: 'Cancel',
+        type: 'edit',
+      });
+
+      if (!confirmed) return;
+
       loader.setButtonLoading(target, true);
 
       const doctor = document.getElementById(`edit-doctor-${id}`).value;
@@ -2324,21 +2803,29 @@
 
     if (!metaId) return;
 
+    // VIEW action
     if (target.classList.contains('view-btn')) {
       window.open(`${API_BASE}/file/${metaId}`, '_blank');
       toast.info('Opening prescription...', 'View');
     }
 
+    // EDIT action (show edit form)
     if (target.classList.contains('edit')) {
-      document.getElementById(`edit-${metaId}`).classList.toggle('hidden');
+      // Check if any other edit row is open and close it
+      document.querySelectorAll('.edit-row:not(.hidden)').forEach((row) => {
+        row.classList.add('hidden');
+      });
+      document.getElementById(`edit-${metaId}`).classList.remove('hidden');
     }
 
+    // CANCEL EDIT action
     if (target.classList.contains('cancel-edit')) {
       const id = target.dataset.id;
       document.getElementById(`edit-${id}`).classList.add('hidden');
     }
   }
 
+  // ===== REFRESH BUTTON =====
   refreshBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     const btn = e.currentTarget;
@@ -2359,10 +2846,8 @@
     toast.info('Prescription list refreshed', 'Refresh Complete');
   });
 
-  // Initialize: load user from storage first
+  // ===== INITIALIZATION =====
   loadUserFromStorage();
-
-  // initial UI render
   refreshUI();
 
   // set today's date as default for date picker

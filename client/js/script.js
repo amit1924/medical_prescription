@@ -1493,6 +1493,159 @@
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingText = document.getElementById('loadingText');
 
+  // ===== SAFE TAP UTILITY FOR MOBILE =====
+  function addSafeTap(element, handler, options = {}) {
+    if (!element) {
+      console.warn('addSafeTap: element not found');
+      return;
+    }
+
+    const { threshold = 10, preventDefault = true } = options;
+    let startX = 0;
+    let startY = 0;
+    let moved = false;
+    let touchStarted = false;
+
+    element.addEventListener(
+      'touchstart',
+      (e) => {
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        moved = false;
+        touchStarted = true;
+      },
+      { passive: true },
+    );
+
+    element.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!touchStarted) return;
+        const touch = e.touches[0];
+        const dx = Math.abs(touch.clientX - startX);
+        const dy = Math.abs(touch.clientY - startY);
+
+        if (dx > threshold || dy > threshold) {
+          moved = true;
+          touchStarted = false;
+        }
+      },
+      { passive: true },
+    );
+
+    element.addEventListener(
+      'touchend',
+      (e) => {
+        if (!touchStarted || moved) {
+          touchStarted = false;
+          return;
+        }
+
+        if (preventDefault) {
+          e.preventDefault();
+        }
+
+        touchStarted = false;
+        handler(e);
+      },
+      { passive: false },
+    );
+
+    element.addEventListener('click', handler);
+  }
+
+  // ===== LONG PRESS UTILITY FOR DESTRUCTIVE ACTIONS =====
+  // ===== LONG PRESS UTILITY FOR DESTRUCTIVE ACTIONS =====
+  function addLongPress(element, handler, duration = 600) {
+    if (!element) {
+      console.warn('addLongPress: element not found');
+      return element;
+    }
+
+    let timer = null;
+    let touchStarted = false;
+    let moved = false;
+    let startX, startY;
+
+    // Store original element reference
+    const originalElement = element;
+
+    element.addEventListener(
+      'touchstart',
+      (e) => {
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        touchStarted = true;
+        moved = false;
+
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+
+        timer = setTimeout(() => {
+          if (touchStarted && !moved) {
+            e.preventDefault();
+            e.stopPropagation();
+            handler(e);
+          }
+          timer = null;
+        }, duration);
+      },
+      { passive: true },
+    );
+
+    element.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!touchStarted) return;
+
+        const touch = e.touches[0];
+        const dx = Math.abs(touch.clientX - startX);
+        const dy = Math.abs(touch.clientY - startY);
+
+        if (dx > 10 || dy > 10) {
+          moved = true;
+          touchStarted = false;
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
+        }
+      },
+      { passive: true },
+    );
+
+    element.addEventListener('touchend', (e) => {
+      touchStarted = false;
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    });
+
+    element.addEventListener('touchcancel', () => {
+      touchStarted = false;
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    });
+
+    // Keep the click handler for desktop
+    element.addEventListener('click', (e) => {
+      if ('ontouchstart' in window) {
+        // On touch devices, long press handles it
+        return;
+      }
+      // On desktop, handle normally
+      handler(e);
+    });
+
+    return element;
+  }
   // ===== CUSTOM CONFIRM DIALOG =====
   class ConfirmDialog {
     constructor() {
@@ -1507,18 +1660,15 @@
     }
 
     createDialog() {
-      // Remove existing dialog if any
       const existingDialog = document.getElementById('confirmDialog');
       if (existingDialog) {
         existingDialog.remove();
       }
 
-      // Create dialog element
       this.dialog = document.createElement('div');
       this.dialog.id = 'confirmDialog';
       this.dialog.className = 'confirm-dialog';
 
-      // Set inner HTML
       this.dialog.innerHTML = `
         <div class="confirm-dialog-content">
           <div class="confirm-dialog-icon">⚠️</div>
@@ -1531,23 +1681,20 @@
         </div>
       `;
 
-      // Add to body
       document.body.appendChild(this.dialog);
 
-      // Get references to elements
       this.cancelBtn = document.getElementById('confirmDialogCancel');
       this.confirmBtn = document.getElementById('confirmDialogConfirm');
       this.titleEl = document.getElementById('confirmDialogTitle');
       this.messageEl = document.getElementById('confirmDialogMessage');
 
-      // Add event listeners
-      this.cancelBtn.addEventListener('click', (e) => {
+      addSafeTap(this.cancelBtn, (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.hide();
       });
 
-      this.confirmBtn.addEventListener('click', (e) => {
+      addSafeTap(this.confirmBtn, (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (this.onConfirm) {
@@ -1556,14 +1703,12 @@
         this.hide();
       });
 
-      // Close on click outside
       this.dialog.addEventListener('click', (e) => {
         if (e.target === this.dialog) {
           this.hide();
         }
       });
 
-      // Close on escape key
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && this.dialog.classList.contains('show')) {
           this.hide();
@@ -1587,11 +1732,9 @@
       this.confirmBtn.textContent = confirmText;
       this.cancelBtn.textContent = cancelText;
 
-      // Set type class
       this.dialog.className = 'confirm-dialog';
       this.dialog.classList.add(`confirm-dialog-${type}`);
 
-      // Set icon based on type
       const iconMap = {
         warning: '⚠️',
         danger: '🗑️',
@@ -1605,7 +1748,6 @@
       this.onConfirm = onConfirm;
       this.onCancel = onCancel;
 
-      // Show dialog
       setTimeout(() => {
         this.dialog.classList.add('show');
       }, 10);
@@ -1647,12 +1789,10 @@
         action = null,
       } = options;
 
-      // Create toast element
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
       toast.dataset.id = id;
 
-      // Icons for different types
       const icons = {
         success: '✓',
         error: '✕',
@@ -1669,28 +1809,19 @@
         <button class="toast-close" aria-label="Close">✕</button>
       `;
 
-      // Add to container
       this.container.appendChild(toast);
 
-      // Trigger reflow for animation
       toast.offsetHeight;
       toast.classList.add('show');
 
-      // Setup close button with touch-friendly event
       const closeBtn = toast.querySelector('.toast-close');
-
-      // Use both click and touchend for reliable mobile interaction
-      const closeHandler = (e) => {
+      addSafeTap(closeBtn, (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.dismiss(id);
-      };
+      });
 
-      closeBtn.addEventListener('click', closeHandler);
-      closeBtn.addEventListener('touchend', closeHandler, { passive: false });
-
-      // Also dismiss on toast tap (optional)
-      toast.addEventListener('click', (e) => {
+      addSafeTap(toast, (e) => {
         if (
           e.target === toast ||
           e.target.classList.contains('toast-content') ||
@@ -1704,7 +1835,6 @@
         }
       });
 
-      // Auto dismiss after duration
       if (duration > 0) {
         const timeout = setTimeout(() => this.dismiss(id), duration);
         this.toasts.set(id, { element: toast, timeout });
@@ -1721,14 +1851,11 @@
 
       const { element, timeout } = toastData;
 
-      // Clear auto-dismiss timeout
       if (timeout) clearTimeout(timeout);
 
-      // Add removing class for exit animation
       element.classList.add('toast-removing');
       element.classList.remove('show');
 
-      // Remove from DOM after animation
       setTimeout(() => {
         if (element.parentNode) {
           element.parentNode.removeChild(element);
@@ -1767,7 +1894,6 @@
       this.textElement.textContent = message;
       this.overlay.classList.add('active');
 
-      // Auto-hide after 30 seconds (safety)
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         if (this.activeLoaders.size > 0) {
@@ -1803,7 +1929,6 @@
       }
     }
 
-    // For button loading states
     setButtonLoading(button, isLoading, text = null) {
       if (isLoading) {
         button.classList.add('btn-loading');
@@ -1818,7 +1943,6 @@
       }
     }
 
-    // Show success animation and auto-hide
     showSuccess(message = 'Success!', duration = 1500) {
       const originalContent = this.overlay.innerHTML;
 
@@ -1845,16 +1969,13 @@
   function formatFilename(filename) {
     if (!filename) return 'Unknown Prescription';
 
-    // Remove file extension
     const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
 
-    // Check if it's an IMG_ pattern (like IMG_20251204_205741.jpg)
     const imgPattern = /^IMG_(\d{4})(\d{2})(\d{2})_(\d{6})/i;
     const match = nameWithoutExt.match(imgPattern);
 
     if (match) {
       const [_, year, month, day, time] = match;
-      // Format time as HH:MM
       const formattedTime = `${time.substring(0, 2)}:${time.substring(2, 4)}`;
       const date = new Date(year, month - 1, day);
       const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -1862,7 +1983,6 @@
       return `📄 Prescription · ${formattedDate} at ${formattedTime}`;
     }
 
-    // Check for date patterns like 20251204
     const datePattern = /(\d{4})(\d{2})(\d{2})/;
     const dateMatch = nameWithoutExt.match(datePattern);
 
@@ -1872,13 +1992,11 @@
       const options = { year: 'numeric', month: 'short', day: 'numeric' };
       const formattedDate = date.toLocaleDateString('en-US', options);
 
-      // Try to extract any doctor name if present
       let doctorPart = nameWithoutExt
         .replace(datePattern, '')
         .replace(/[_\-]/g, ' ')
         .trim();
       if (doctorPart) {
-        // Capitalize first letter of each word
         doctorPart = doctorPart
           .split(' ')
           .map(
@@ -1891,20 +2009,17 @@
       return `📄 Prescription · ${formattedDate}`;
     }
 
-    // If no pattern matches, clean up the filename
     let cleaned = nameWithoutExt
-      .replace(/[_\-]/g, ' ') // Replace underscores and hyphens with spaces
-      .replace(/\s+/g, ' ') // Remove multiple spaces
-      .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
+      .replace(/[_\-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
       .trim();
 
-    // Capitalize first letter of each word
     cleaned = cleaned
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
 
-    // If cleaned is too long, truncate it
     if (cleaned.length > 30) {
       cleaned = cleaned.substring(0, 27) + '...';
     }
@@ -1912,12 +2027,11 @@
     return `📄 ${cleaned}`;
   }
 
-  // Initialize toast, loading, and confirm managers
+  // Initialize managers
   const toast = new ToastManager(toastContainer);
   const loader = new LoadingManager(loadingOverlay, loadingText);
   const confirm = new ConfirmDialog();
 
-  // Add loading state to cards
   function setCardLoading(cardId, isLoading) {
     const card = document.querySelector(`.pres-card[data-id="${cardId}"]`);
     if (card) {
@@ -1929,7 +2043,6 @@
     }
   }
 
-  // Load user from localStorage on page load
   function loadUserFromStorage() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -1942,7 +2055,6 @@
     }
   }
 
-  // Save user to localStorage
   function saveUserToStorage(user) {
     if (user) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
@@ -1951,27 +2063,22 @@
     }
   }
 
-  // Hamburger toggle with touch optimization
-  hamburgerBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    sidebar.classList.toggle('collapsed');
-  });
+  // Hamburger toggle
+  if (hamburgerBtn) {
+    addSafeTap(hamburgerBtn, (e) => {
+      e.preventDefault();
+      sidebar.classList.toggle('collapsed');
+    });
+  }
 
-  hamburgerBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    sidebar.classList.toggle('collapsed');
-  });
-
-  // Close sidebar on mobile when clicking outside (optional)
   document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768) {
-      if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+      if (!sidebar.contains(e.target) && !hamburgerBtn?.contains(e.target)) {
         sidebar.classList.add('collapsed');
       }
     }
   });
 
-  // Helper: show/hide messages
   function setAuthError(msg) {
     if (msg) {
       authMessage.innerText = msg;
@@ -1994,7 +2101,6 @@
     }
   }
 
-  // Update sidebar stats
   function updateSidebarStats() {
     if (!currentUser || allFiles.length === 0) {
       totalFilesStat.innerText = allFiles.length;
@@ -2004,10 +2110,8 @@
       return;
     }
 
-    // Total files
     totalFilesStat.innerText = allFiles.length;
 
-    // Count by doctor
     const doctorCounts = {};
     allFiles.forEach((f) => {
       const doc = f.doctor || 'Unknown';
@@ -2016,7 +2120,6 @@
 
     uniqueDoctorsStat.innerText = Object.keys(doctorCounts).length;
 
-    // Build doctor list
     const sortedDocs = Object.entries(doctorCounts).sort((a, b) => b[1] - a[1]);
     doctorListContainer.innerHTML = sortedDocs
       .map(
@@ -2035,7 +2138,6 @@
     }
   }
 
-  // Filter and sort functions
   function updateYearFilterOptions() {
     const years = new Set();
     allFiles.forEach((file) => {
@@ -2059,7 +2161,6 @@
       return;
     }
 
-    // Apply search filter
     const searchTerm = searchInput.value.toLowerCase();
     let filtered = allFiles.filter((file) => {
       const matchesSearch =
@@ -2069,7 +2170,6 @@
       return matchesSearch;
     });
 
-    // Apply year filter
     const selectedYear = yearFilter.value;
     if (selectedYear !== 'all') {
       filtered = filtered.filter(
@@ -2077,7 +2177,6 @@
       );
     }
 
-    // Apply sorting
     const sortOption = sortSelect.value;
     filtered.sort((a, b) => {
       switch (sortOption) {
@@ -2137,15 +2236,81 @@
         `,
       )
       .join('');
+
+    // After rendering, attach long press to all delete buttons
+    setTimeout(() => {
+      attachDeleteLongPress();
+    }, 100);
   }
 
-  // render UI based on currentUser
+  // Separate function to attach long press to delete buttons
+  function attachDeleteLongPress() {
+    document.querySelectorAll('.delete').forEach((deleteBtn) => {
+      // Check if already processed
+      if (!deleteBtn.hasAttribute('data-longpress-attached')) {
+        addLongPress(
+          deleteBtn,
+          async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await handleDeleteAction(deleteBtn);
+          },
+          600,
+        );
+
+        deleteBtn.setAttribute('data-longpress-attached', 'true');
+      }
+    });
+  }
+
+  // Separate delete handler
+  async function handleDeleteAction(deleteBtn) {
+    if (!currentUser) return;
+
+    const metaId = deleteBtn.dataset.metaid;
+    if (!metaId) return;
+
+    const file = allFiles.find((f) => f.id === metaId);
+    const filename = file ? formatFilename(file.filename) : 'this prescription';
+
+    const confirmed = await confirm.confirm({
+      title: 'Delete Prescription',
+      message: `Are you sure you want to delete ${filename}? This action cannot be undone.`,
+      confirmText: 'Delete Permanently',
+      cancelText: 'Cancel',
+      type: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    loader.setButtonLoading(deleteBtn, true);
+
+    try {
+      await loader.withLoader(async () => {
+        const res = await fetch(`${API_BASE}/file/${metaId}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) throw new Error();
+
+        loader.showSuccess('Deleted!', 800);
+
+        setTimeout(() => {
+          loadPrescriptions();
+          toast.success('Prescription has been deleted', 'Delete Complete');
+        }, 800);
+      }, 'Deleting prescription...');
+    } catch {
+      toast.error('Failed to delete prescription', 'Delete Failed');
+    } finally {
+      loader.setButtonLoading(deleteBtn, false);
+    }
+  }
+
   function refreshUI() {
     const loggedIn = !!currentUser;
     if (loggedIn) {
       authCard.classList.add('hidden');
       mainApp.classList.remove('hidden');
-      // sidebar
       sidebarUserProfile.style.display = 'block';
       sidebarStats.style.display = 'block';
       sidebarFooter.style.display = 'block';
@@ -2160,7 +2325,6 @@
       sidebarStats.style.display = 'none';
       sidebarFooter.style.display = 'none';
       sidebarGuest.style.display = 'block';
-      // default to login tab
       showLoginTab();
       setAuthError(null);
       setAuthSuccess(null);
@@ -2170,7 +2334,6 @@
     }
   }
 
-  // tab switching
   function showLoginTab() {
     tabLogin.classList.add('active');
     tabSignup.classList.remove('active');
@@ -2189,22 +2352,24 @@
     setAuthError(null);
   }
 
-  tabLogin.addEventListener('click', showLoginTab);
-  tabLogin.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    showLoginTab();
-  });
+  if (tabLogin) {
+    addSafeTap(tabLogin, (e) => {
+      e.preventDefault();
+      showLoginTab();
+    });
+  }
 
-  tabSignup.addEventListener('click', showSignupTab);
-  tabSignup.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    showSignupTab();
-  });
+  if (tabSignup) {
+    addSafeTap(tabSignup, (e) => {
+      e.preventDefault();
+      showSignupTab();
+    });
+  }
 
-  // ===== FORGOT PASSWORD FLOW (SECURE) =====
-  document
-    .getElementById('forgotPasswordBtn')
-    .addEventListener('click', (e) => {
+  // Forgot password flow
+  const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+  if (forgotPasswordBtn) {
+    addSafeTap(forgotPasswordBtn, (e) => {
       e.preventDefault();
       loginForm.style.display = 'none';
       signupForm.style.display = 'none';
@@ -2216,37 +2381,11 @@
       setAuthError(null);
       setAuthSuccess(null);
     });
+  }
 
-  document
-    .getElementById('forgotPasswordBtn')
-    .addEventListener('touchend', (e) => {
-      e.preventDefault();
-      loginForm.style.display = 'none';
-      signupForm.style.display = 'none';
-      forgotContainer.style.display = 'block';
-      document.getElementById('stepEmail').style.display = 'block';
-      if (document.getElementById('stepSuccess')) {
-        document.getElementById('stepSuccess').style.display = 'none';
-      }
-      setAuthError(null);
-      setAuthSuccess(null);
-    });
-
-  document
-    .getElementById('backToLoginFromReset')
-    .addEventListener('click', (e) => {
-      e.preventDefault();
-      forgotContainer.style.display = 'none';
-      loginForm.style.display = 'block';
-      document.getElementById('resetEmail').value = '';
-    });
-
-  // Back to login from success message
-  const backToLoginFromSuccess = document.getElementById(
-    'backToLoginFromSuccess',
-  );
-  if (backToLoginFromSuccess) {
-    backToLoginFromSuccess.addEventListener('click', (e) => {
+  const backToLoginFromReset = document.getElementById('backToLoginFromReset');
+  if (backToLoginFromReset) {
+    addSafeTap(backToLoginFromReset, (e) => {
       e.preventDefault();
       forgotContainer.style.display = 'none';
       loginForm.style.display = 'block';
@@ -2254,10 +2393,21 @@
     });
   }
 
-  // Send reset link
-  document
-    .getElementById('sendResetLink')
-    .addEventListener('click', async (e) => {
+  const backToLoginFromSuccess = document.getElementById(
+    'backToLoginFromSuccess',
+  );
+  if (backToLoginFromSuccess) {
+    addSafeTap(backToLoginFromSuccess, (e) => {
+      e.preventDefault();
+      forgotContainer.style.display = 'none';
+      loginForm.style.display = 'block';
+      document.getElementById('resetEmail').value = '';
+    });
+  }
+
+  const sendResetLink = document.getElementById('sendResetLink');
+  if (sendResetLink) {
+    addSafeTap(sendResetLink, async (e) => {
       e.preventDefault();
       const btn = e.currentTarget;
 
@@ -2271,7 +2421,6 @@
         return;
       }
 
-      // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         setAuthError('Please enter a valid email address');
@@ -2295,20 +2444,16 @@
             throw new Error(data.error || 'Request failed');
           }
 
-          // Always show success message for security
           loader.showSuccess('Link Sent!', 1200);
 
-          // Hide email step and show success message
           document.getElementById('stepEmail').style.display = 'none';
           if (document.getElementById('stepSuccess')) {
             document.getElementById('stepSuccess').style.display = 'block';
           }
 
-          // Clear any previous messages
           setAuthError(null);
           setAuthSuccess(null);
 
-          // Log the reset link in development only
           if (data.resetLink && window.location.hostname === 'localhost') {
             console.log(
               '🔐 Password reset link (development only):',
@@ -2322,56 +2467,12 @@
         loader.setButtonLoading(btn, false);
       }
     });
+  }
 
-  // ===== LOGIN =====
-  document.getElementById('loginBtn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const btn = e.currentTarget;
-
-    const email = loginEmail.value.trim().toLowerCase();
-    const pass = loginPassword.value;
-
-    if (!email || !pass) {
-      setAuthError('enter credentials');
-      return;
-    }
-
-    loader.setButtonLoading(btn, true);
-
-    try {
-      await loader.withLoader(async () => {
-        const res = await fetch(`${API_BASE}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password: pass }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'login failed');
-
-        currentUser = { id: data.id, email: data.email };
-        saveUserToStorage(currentUser);
-
-        loader.showSuccess('Welcome!', 1000);
-
-        setTimeout(() => {
-          refreshUI();
-          toast.success(
-            `Welcome back, ${email.split('@')[0]}!`,
-            'Login Successful',
-          );
-        }, 1000);
-      }, 'Logging in...');
-    } catch (e) {
-      setAuthError(e.message);
-    } finally {
-      loader.setButtonLoading(btn, false);
-    }
-  });
-
-  // login with touch
-  document
-    .getElementById('loginBtn')
-    .addEventListener('touchend', async (e) => {
+  // Login
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) {
+    addSafeTap(loginBtn, async (e) => {
       e.preventDefault();
       const btn = e.currentTarget;
 
@@ -2414,61 +2515,65 @@
         loader.setButtonLoading(btn, false);
       }
     });
+  }
 
-  // ===== SIGNUP =====
-  document.getElementById('signupBtn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const btn = e.currentTarget;
+  // Signup
+  const signupBtn = document.getElementById('signupBtn');
+  if (signupBtn) {
+    addSafeTap(signupBtn, async (e) => {
+      e.preventDefault();
+      const btn = e.currentTarget;
 
-    const email = signupEmail.value.trim().toLowerCase();
-    const pass = signupPassword.value;
+      const email = signupEmail.value.trim().toLowerCase();
+      const pass = signupPassword.value;
 
-    if (!email || !pass) {
-      setAuthError('email & password required');
-      return;
-    }
+      if (!email || !pass) {
+        setAuthError('email & password required');
+        return;
+      }
 
-    if (pass.length < 6) {
-      setAuthError('password must be at least 6 characters');
-      return;
-    }
+      if (pass.length < 6) {
+        setAuthError('password must be at least 6 characters');
+        return;
+      }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setAuthError('Please enter a valid email address');
-      return;
-    }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setAuthError('Please enter a valid email address');
+        return;
+      }
 
-    loader.setButtonLoading(btn, true);
+      loader.setButtonLoading(btn, true);
 
-    try {
-      await loader.withLoader(async () => {
-        const res = await fetch(`${API_BASE}/auth/signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password: pass }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'signup failed');
+      try {
+        await loader.withLoader(async () => {
+          const res = await fetch(`${API_BASE}/auth/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pass }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'signup failed');
 
-        loader.showSuccess('Account Created!', 1200);
-        setAuthSuccess('account created! please login.');
+          loader.showSuccess('Account Created!', 1200);
+          setAuthSuccess('account created! please login.');
 
-        setTimeout(() => {
-          showLoginTab();
-          loginEmail.value = email;
-          signupEmail.value = '';
-          signupPassword.value = '';
-        }, 1200);
-      }, 'Creating account...');
-    } catch (e) {
-      setAuthError(e.message);
-    } finally {
-      loader.setButtonLoading(btn, false);
-    }
-  });
+          setTimeout(() => {
+            showLoginTab();
+            loginEmail.value = email;
+            signupEmail.value = '';
+            signupPassword.value = '';
+          }, 1200);
+        }, 'Creating account...');
+      } catch (e) {
+        setAuthError(e.message);
+      } finally {
+        loader.setButtonLoading(btn, false);
+      }
+    });
+  }
 
-  // ===== LOGOUT =====
+  // Logout
   async function logout() {
     const confirmed = await confirm.confirm({
       title: 'Sign Out',
@@ -2486,174 +2591,156 @@
     }
   }
 
-  sidebarLogoutBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    logout();
-  });
+  if (sidebarLogoutBtn) {
+    addSafeTap(sidebarLogoutBtn, (e) => {
+      e.preventDefault();
+      logout();
+    });
+  }
 
-  sidebarLogoutBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    logout();
-  });
-
-  // ===== FILE UPLOAD =====
+  // ===== FILE UPLOAD - FIXED FOR YOUR HTML =====
   fileInput.addEventListener('change', () => {
     selectedFileName.innerText = fileInput.files[0]?.name || '';
   });
 
-  document
-    .getElementById('fileDropZone')
-    .addEventListener('click', () => fileInput.click());
-  document.getElementById('fileDropZone').addEventListener('touchend', (e) => {
-    e.preventDefault();
-    fileInput.click();
-  });
+  // FIX: Find the label inside file-zone that triggers file selection
+  function setupFileSelection() {
+    // The label is inside file-zone and is the actual trigger
+    const fileZone = document.getElementById('fileDropZone');
+    if (fileZone) {
+      const label = fileZone.querySelector('label');
+      if (label) {
+        console.log('Found file trigger label');
 
-  uploadBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const btn = e.currentTarget;
-
-    if (!currentUser) return;
-
-    const file = fileInput.files[0];
-    if (!file) {
-      toast.warning('Please select a file to upload', 'No File Selected');
-      return;
-    }
-
-    // Confirm upload
-    const confirmed = await confirm.confirm({
-      title: 'Confirm Upload',
-      message: `Are you sure you want to upload "${file.name}"?`,
-      confirmText: 'Upload',
-      cancelText: 'Cancel',
-      type: 'info',
-    });
-
-    if (!confirmed) return;
-
-    const doctor = doctorName.value.trim() || 'Unknown';
-    const date = prescDate.value || new Date().toISOString().split('T')[0];
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('userId', currentUser.id);
-    formData.append('doctor', doctor);
-    formData.append('date', date);
-
-    loader.setButtonLoading(btn, true);
-    const uploadingToast = toast.info(
-      'Uploading your prescription...',
-      'Uploading',
-      0,
-    );
-
-    try {
-      await loader.withLoader(async () => {
-        const res = await fetch(`${API_BASE}/upload`, {
-          method: 'POST',
-          body: formData,
+        // Remove the default behavior and use our safe tap
+        label.style.cursor = 'pointer';
+        addSafeTap(label, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          fileInput.click();
         });
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.error || 'upload error');
-
-        toast.dismiss(uploadingToast);
-        loader.showSuccess('Upload Complete!', 1200);
-
-        setTimeout(() => {
-          fileInput.value = '';
-          selectedFileName.innerText = '';
-          doctorName.value = '';
-          prescDate.value = date;
-          loadPrescriptions();
-          toast.success(
-            'Your prescription has been uploaded successfully',
-            'Upload Complete',
-          );
-        }, 1200);
-      }, 'Uploading prescription...');
-    } catch (e) {
-      toast.dismiss(uploadingToast);
-      toast.error('Upload failed: ' + e.message, 'Upload Failed');
-    } finally {
-      loader.setButtonLoading(btn, false);
-    }
-  });
-
-  uploadBtn.addEventListener('touchend', async (e) => {
-    e.preventDefault();
-    const btn = e.currentTarget;
-
-    if (!currentUser) return;
-
-    const file = fileInput.files[0];
-    if (!file) {
-      toast.warning('Please select a file to upload', 'No File Selected');
-      return;
-    }
-
-    // Confirm upload
-    const confirmed = await confirm.confirm({
-      title: 'Confirm Upload',
-      message: `Are you sure you want to upload "${file.name}"?`,
-      confirmText: 'Upload',
-      cancelText: 'Cancel',
-      type: 'info',
-    });
-
-    if (!confirmed) return;
-
-    const doctor = doctorName.value.trim() || 'Unknown';
-    const date = prescDate.value || new Date().toISOString().split('T')[0];
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('userId', currentUser.id);
-    formData.append('doctor', doctor);
-    formData.append('date', date);
-
-    loader.setButtonLoading(btn, true);
-    const uploadingToast = toast.info(
-      'Uploading your prescription...',
-      'Uploading',
-      0,
-    );
-
-    try {
-      await loader.withLoader(async () => {
-        const res = await fetch(`${API_BASE}/upload`, {
-          method: 'POST',
-          body: formData,
+      } else {
+        // If no label, make the whole zone clickable
+        addSafeTap(fileZone, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          fileInput.click();
         });
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.error || 'upload error');
-
-        toast.dismiss(uploadingToast);
-        loader.showSuccess('Upload Complete!', 1200);
-
-        setTimeout(() => {
-          fileInput.value = '';
-          selectedFileName.innerText = '';
-          doctorName.value = '';
-          prescDate.value = date;
-          loadPrescriptions();
-          toast.success(
-            'Your prescription has been uploaded successfully',
-            'Upload Complete',
-          );
-        }, 1200);
-      }, 'Uploading prescription...');
-    } catch (e) {
-      toast.dismiss(uploadingToast);
-      toast.error('Upload failed: ' + e.message, 'Upload Failed');
-    } finally {
-      loader.setButtonLoading(btn, false);
+      }
     }
-  });
 
-  // ===== LOAD PRESCRIPTIONS =====
+    // Also make the filename display clickable as a backup
+    if (selectedFileName) {
+      selectedFileName.style.cursor = 'pointer';
+      addSafeTap(selectedFileName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        fileInput.click();
+      });
+    }
+
+    // Make the upload section hint clickable
+    const uploadPanel = document.querySelector('.upload-panel');
+    if (uploadPanel) {
+      const hintElements = uploadPanel.querySelectorAll('span');
+      hintElements.forEach((el) => {
+        if (el.textContent.toLowerCase().includes('tap to choose file')) {
+          el.style.cursor = 'pointer';
+          addSafeTap(el, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
+          });
+        }
+      });
+    }
+  }
+
+  // Call setup after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFileSelection);
+  } else {
+    setTimeout(setupFileSelection, 100);
+  }
+
+  // Upload button
+  if (uploadBtn) {
+    addSafeTap(uploadBtn, async (e) => {
+      e.preventDefault();
+      const btn = e.currentTarget;
+
+      if (!currentUser) {
+        toast.warning('Please login first', 'Authentication Required');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      if (!file) {
+        toast.warning('Please select a file to upload', 'No File Selected');
+        return;
+      }
+
+      const confirmed = await confirm.confirm({
+        title: 'Confirm Upload',
+        message: `Are you sure you want to upload "${file.name}"?`,
+        confirmText: 'Upload',
+        cancelText: 'Cancel',
+        type: 'info',
+      });
+
+      if (!confirmed) return;
+
+      const doctor = doctorName.value.trim() || 'Unknown';
+      const date = prescDate.value || new Date().toISOString().split('T')[0];
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', currentUser.id);
+      formData.append('doctor', doctor);
+      formData.append('date', date);
+
+      loader.setButtonLoading(btn, true);
+      const uploadingToast = toast.info(
+        'Uploading your prescription...',
+        'Uploading',
+        0,
+      );
+
+      try {
+        await loader.withLoader(async () => {
+          const res = await fetch(`${API_BASE}/upload`, {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await res.json();
+
+          if (!res.ok) throw new Error(data.error || 'upload error');
+
+          toast.dismiss(uploadingToast);
+          loader.showSuccess('Upload Complete!', 1200);
+
+          setTimeout(() => {
+            fileInput.value = '';
+            selectedFileName.innerText = '';
+            doctorName.value = '';
+            prescDate.value = date;
+            loadPrescriptions();
+            toast.success(
+              'Your prescription has been uploaded successfully',
+              'Upload Complete',
+            );
+          }, 1200);
+        }, 'Uploading prescription...');
+      } catch (e) {
+        toast.dismiss(uploadingToast);
+        toast.error('Upload failed: ' + e.message, 'Upload Failed');
+      } finally {
+        loader.setButtonLoading(btn, false);
+      }
+    });
+  }
+
+  // Load prescriptions
   async function loadPrescriptions() {
     if (!currentUser) return;
 
@@ -2673,94 +2760,47 @@
     }
   }
 
-  // ===== SEARCH AND FILTER =====
-  searchInput.addEventListener('input', renderPrescriptions);
-  yearFilter.addEventListener('change', renderPrescriptions);
-  sortSelect.addEventListener('change', renderPrescriptions);
+  // Search and filter
+  if (searchInput) searchInput.addEventListener('input', renderPrescriptions);
+  if (yearFilter) yearFilter.addEventListener('change', renderPrescriptions);
+  if (sortSelect) sortSelect.addEventListener('change', renderPrescriptions);
 
-  clearFiltersBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    searchInput.value = '';
-    yearFilter.value = 'all';
-    sortSelect.value = 'newest';
-    renderPrescriptions();
-    toast.info('All filters have been cleared', 'Filters Cleared');
-  });
+  if (clearFiltersBtn) {
+    addSafeTap(clearFiltersBtn, (e) => {
+      e.preventDefault();
+      searchInput.value = '';
+      yearFilter.value = 'all';
+      sortSelect.value = 'newest';
+      renderPrescriptions();
+      toast.info('All filters have been cleared', 'Filters Cleared');
+    });
+  }
 
-  clearFiltersBtn.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    searchInput.value = '';
-    yearFilter.value = 'all';
-    sortSelect.value = 'newest';
-    renderPrescriptions();
-    toast.info('All filters have been cleared', 'Filters Cleared');
-  });
-
-  // ===== PRESCRIPTION ACTIONS (VIEW, EDIT, DELETE) =====
+  // ===== PRESCRIPTION ACTIONS =====
+  // Use event delegation for non-delete actions only
+  // ===== PRESCRIPTION ACTIONS =====
+  // Use event delegation for non-delete actions only
   prescriptionsDiv.addEventListener('click', async (e) => {
-    await handlePrescriptionAction(e);
-  });
-
-  prescriptionsDiv.addEventListener('touchend', async (e) => {
-    e.preventDefault();
-    await handlePrescriptionAction(e);
-  });
-
-  async function handlePrescriptionAction(e) {
     const target = e.target;
     if (!currentUser) return;
 
-    const metaId = target.dataset.metaid;
-
-    // DELETE action
-    if (target.classList.contains('delete') && metaId) {
+    // For delete buttons - let the long press handler handle it
+    // But also allow regular click for desktop users
+    if (target.classList.contains('delete')) {
       e.preventDefault();
-
-      // Find the filename for the confirmation message
-      const file = allFiles.find((f) => f.id === metaId);
-      const filename = file
-        ? formatFilename(file.filename)
-        : 'this prescription';
-
-      // Show beautiful confirm dialog
-      const confirmed = await confirm.confirm({
-        title: 'Delete Prescription',
-        message: `Are you sure you want to delete ${filename}? This action cannot be undone.`,
-        confirmText: 'Delete Permanently',
-        cancelText: 'Cancel',
-        type: 'danger',
-      });
-
-      if (!confirmed) return;
-
-      loader.setButtonLoading(target, true);
-
-      try {
-        await loader.withLoader(async () => {
-          const res = await fetch(`${API_BASE}/file/${metaId}`, {
-            method: 'DELETE',
-          });
-          if (!res.ok) throw new Error();
-
-          loader.showSuccess('Deleted!', 800);
-
-          setTimeout(() => {
-            loadPrescriptions();
-            toast.success('Prescription has been deleted', 'Delete Complete');
-          }, 800);
-        }, 'Deleting prescription...');
-      } catch {
-        toast.error('Failed to delete prescription', 'Delete Failed');
-      } finally {
-        loader.setButtonLoading(target, false);
+      // On desktop, handle click directly
+      if (!('ontouchstart' in window)) {
+        await handleDeleteAction(target);
       }
+      return;
     }
+
+    const metaId = target.dataset.metaid || target.dataset.id;
 
     // SAVE EDIT action
     if (target.classList.contains('save-edit')) {
       const id = target.dataset.id;
 
-      // Confirm edit
       const confirmed = await confirm.confirm({
         title: 'Save Changes',
         message: 'Are you sure you want to save these changes?',
@@ -2811,7 +2851,6 @@
 
     // EDIT action (show edit form)
     if (target.classList.contains('edit')) {
-      // Check if any other edit row is open and close it
       document.querySelectorAll('.edit-row:not(.hidden)').forEach((row) => {
         row.classList.add('hidden');
       });
@@ -2823,38 +2862,27 @@
       const id = target.dataset.id;
       document.getElementById(`edit-${id}`).classList.add('hidden');
     }
+  });
+  // Refresh button
+  if (refreshBtn) {
+    addSafeTap(refreshBtn, async (e) => {
+      e.preventDefault();
+      const btn = e.currentTarget;
+
+      loader.setButtonLoading(btn, true);
+      await loadPrescriptions();
+      loader.setButtonLoading(btn, false);
+      toast.info('Prescription list refreshed', 'Refresh Complete');
+    });
   }
 
-  // ===== REFRESH BUTTON =====
-  refreshBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const btn = e.currentTarget;
-
-    loader.setButtonLoading(btn, true);
-    await loadPrescriptions();
-    loader.setButtonLoading(btn, false);
-    toast.info('Prescription list refreshed', 'Refresh Complete');
-  });
-
-  refreshBtn.addEventListener('touchend', async (e) => {
-    e.preventDefault();
-    const btn = e.currentTarget;
-
-    loader.setButtonLoading(btn, true);
-    await loadPrescriptions();
-    loader.setButtonLoading(btn, false);
-    toast.info('Prescription list refreshed', 'Refresh Complete');
-  });
-
-  // ===== INITIALIZATION =====
+  // Initialize
   loadUserFromStorage();
   refreshUI();
 
-  // set today's date as default for date picker
   const today = new Date().toISOString().split('T')[0];
   if (prescDate) prescDate.value = today;
 
-  // Welcome toast for returning users
   if (currentUser) {
     setTimeout(() => {
       toast.success(
@@ -2863,4 +2891,20 @@
       );
     }, 500);
   }
+
+  // Add touch-action: manipulation to all buttons
+  const style = document.createElement('style');
+  style.textContent = `
+    button, .btn, .btn-icon, .toast-close, .confirm-dialog-btn, [role="button"] {
+      touch-action: manipulation;
+    }
+    [data-longpress-attached="true"] {
+      position: relative;
+    }
+    .file-zone label {
+      display: block;
+      cursor: pointer;
+    }
+  `;
+  document.head.appendChild(style);
 })();

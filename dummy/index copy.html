@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MedPresc · Dark dashboard</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <!-- SIDEBAR (collapsible) -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">💊</div>
+          <h2>MedPresc</h2>
+        </div>
+
+        <!-- User profile (dynamic) -->
+        <div class="user-profile" id="sidebarUserProfile" style="display: none">
+          <div class="user-avatar">👨‍⚕️</div>
+          <div class="user-name" id="sidebarUserName"></div>
+          <div class="user-email" id="sidebarUserEmail"></div>
+        </div>
+
+        <!-- Stats section (only visible when logged in) -->
+        <div id="sidebarStats" style="display: none">
+          <div class="stats-section">
+            <div class="stats-title">📊 overview</div>
+            <div class="stat-card">
+              <div class="stat-icon">📄</div>
+              <div class="stat-info">
+                <h4>total prescriptions</h4>
+                <p id="totalFilesStat">0</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">👨‍⚕️</div>
+              <div class="stat-info">
+                <h4>unique doctors</h4>
+                <p id="uniqueDoctorsStat">0</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-section">
+            <div class="stats-title">📋 doctors list</div>
+            <div class="doctor-list" id="doctorListContainer">
+              <!-- dynamically populated -->
+              <div class="doctor-item">
+                <span class="doctor-name">Loading...</span>
+                <span class="doctor-count">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-footer" id="sidebarFooter" style="display: none">
+          <button class="logout-sidebar" id="sidebarLogoutBtn">
+            <span>🚪</span> sign out
+          </button>
+        </div>
+
+        <!-- Guest message in sidebar -->
+        <div
+          id="sidebarGuest"
+          style="
+            margin-top: 2rem;
+            text-align: center;
+            color: #7b92b5;
+            display: block;
+          "
+        >
+          <span>🔒 login to access</span>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <div class="main-content">
+        <!-- Top bar with hamburger -->
+        <div class="top-bar">
+          <button class="hamburger" id="hamburgerBtn">☰</button>
+          <span class="page-title">Dashboard</span>
+          <div class="header-actions">
+            <!-- additional actions can go here -->
+          </div>
+        </div>
+
+        <!-- main container (rest of the UI) -->
+        <div class="container" id="appContainer">
+          <!-- header -->
+          <div class="app-header">
+            <div class="logo">💊</div>
+            <h1>medpresc</h1>
+            <div class="badge">secure · gridfs</div>
+          </div>
+
+          <!-- AUTH CARD (login/signup/forgot/reset) -->
+          <div id="authCard" class="auth-card">
+            <div class="auth-tabs">
+              <button class="auth-tab active" id="tabLogin">login</button>
+              <button class="auth-tab" id="tabSignup">sign up</button>
+            </div>
+
+            <!-- login form -->
+            <div id="loginForm">
+              <div class="input-group">
+                <label>📧 email</label>
+                <input
+                  type="email"
+                  id="loginEmail"
+                  placeholder="patient@example.com"
+                />
+              </div>
+              <div class="input-group">
+                <label>🔑 password</label>
+                <input
+                  type="password"
+                  id="loginPassword"
+                  placeholder="••••••••"
+                />
+              </div>
+              <button class="btn-primary" id="loginBtn">log in</button>
+              <div class="forgot-link">
+                <button id="forgotPasswordBtn">forgot password?</button>
+              </div>
+            </div>
+
+            <!-- signup form (hidden by default) -->
+            <div id="signupForm" style="display: none">
+              <div class="input-group">
+                <label>📧 email</label>
+                <input
+                  type="email"
+                  id="signupEmail"
+                  placeholder="new@example.com"
+                />
+              </div>
+              <div class="input-group">
+                <label>🔑 password</label>
+                <input
+                  type="password"
+                  id="signupPassword"
+                  placeholder="min 6 chars"
+                />
+              </div>
+              <button class="btn-primary" id="signupBtn">create account</button>
+            </div>
+
+            <!-- forgot / reset inline (hidden) - UPDATED FOR SECURITY -->
+            <div
+              id="forgotContainer"
+              style="display: none"
+              class="reset-section"
+            >
+              <h4 style="margin-bottom: 1rem">🔐 reset password</h4>
+
+              <!-- Step 1: Request reset link -->
+              <div id="stepEmail">
+                <div class="input-group">
+                  <label>📧 email</label>
+                  <input
+                    type="email"
+                    id="resetEmail"
+                    placeholder="your email"
+                  />
+                </div>
+                <button class="btn-primary" id="sendResetLink">
+                  send reset link
+                </button>
+                <button class="btn-outline mt-2" id="backToLoginFromReset">
+                  ← back
+                </button>
+              </div>
+
+              <!-- Step 2: Show success message and instructions -->
+              <div id="stepSuccess" style="display: none" class="text-center">
+                <div class="success-icon">✅</div>
+                <p class="success-message">
+                  If an account exists with this email, a reset link has been
+                  sent.
+                </p>
+                <p class="text-small mt-2">
+                  Check your email and click the link to reset your password.
+                </p>
+                <button class="btn-outline mt-3" id="backToLoginFromSuccess">
+                  ← back to login
+                </button>
+              </div>
+            </div>
+
+            <!-- messages -->
+            <div id="authMessage" class="error-msg hidden"></div>
+            <div id="authSuccess" class="success-msg hidden"></div>
+          </div>
+
+          <!-- MAIN APP (authenticated) -->
+          <div id="mainApp" class="app-main hidden">
+            <!-- upload block -->
+            <div class="upload-panel">
+              <h3>📤 upload prescription</h3>
+              <div class="file-zone" id="fileDropZone">
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept="image/*,application/pdf"
+                />
+                <label for="fileInput">
+                  <span class="icon">📄</span>
+                  <span>tap to choose file (PDF/ image)</span>
+                  <span class="text-small" id="selectedFileName"></span>
+                </label>
+              </div>
+              <div class="inline-fields">
+                <input
+                  type="text"
+                  id="doctorName"
+                  placeholder="doctor name (optional)"
+                />
+                <input type="date" id="prescDate" />
+              </div>
+              <button class="btn-upload" id="uploadBtn">
+                ⬆ upload prescription
+              </button>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="search-filter-bar" id="searchFilterBar">
+              <div class="search-box">
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Search by doctor or filename..."
+                />
+              </div>
+              <div class="filter-group">
+                <select class="filter-select" id="yearFilter">
+                  <option value="all">All Years</option>
+                </select>
+                <select class="filter-select" id="sortSelect">
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="doctor-asc">Doctor (A-Z)</option>
+                  <option value="doctor-desc">Doctor (Z-A)</option>
+                  <option value="filename-asc">Filename (A-Z)</option>
+                  <option value="filename-desc">Filename (Z-A)</option>
+                </select>
+                <div class="sort-badge" id="clearFiltersBtn">
+                  <span>✕</span> Clear filters
+                </div>
+              </div>
+            </div>
+
+            <!-- prescriptions list -->
+            <div class="list-header">
+              <h2>📋 your prescriptions</h2>
+              <button class="refresh-btn" id="refreshList">↻ refresh</button>
+            </div>
+            <div id="prescriptionsList" class="prescriptions-grid">
+              <!-- dynamically loaded -->
+            </div>
+            <div
+              id="emptyMessage"
+              class="text-small"
+              style="text-align: center; margin: 2rem"
+            >
+              no prescriptions yet. upload above.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="loading-circles">
+        <div class="circle-orbit">
+          <div class="circle"></div>
+          <div class="circle"></div>
+          <div class="circle"></div>
+          <div class="circle"></div>
+        </div>
+        <div class="circle-pulse">
+          <div class="circle"></div>
+          <div class="circle"></div>
+          <div class="circle"></div>
+        </div>
+      </div>
+      <div class="loading-text" id="loadingText">Processing...</div>
+    </div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+  </body>
+  <script src="js/script.js"></script>
+</html>
